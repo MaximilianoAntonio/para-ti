@@ -1,8 +1,8 @@
 /**
  * ========================================================
  * MOTOR DE RENDERIZADO EN CANVAS - TULIPANES ROJOS VIVOS
- * Animacion de florecimiento (apertura), brisa armonica
- * y clasificacion anatomica 100% precisa para moviles
+ * Animacion de apertura botanica, fisica armonica de balanceo
+ * y atlas de glifos de alta definicion para moviles
  * ========================================================
  */
 
@@ -49,11 +49,11 @@
       name: 'Tulipanes Rojos Pasion',
       flower: {
         dense: '#ffffff',
-        body: '#ff0033',
+        body: '#ff0038',
         highlight: '#ff2a4b',
-        shadow: '#99001b',
+        shadow: '#8a0018',
         glow: '#ff0033',
-        shadowGlow: '#cc0029'
+        shadowGlow: '#660012'
       },
       stem: {
         dense: '#ffffff',
@@ -70,18 +70,18 @@
         glow: '#ffa000'
       },
       bgGrid: 'rgba(120, 160, 255, 0.12)',
-      particleColors: ['#ff0033', '#ff2a4b', '#00ff88', '#76ff03']
+      particleColors: ['#ff0038', '#ff2a4b', '#00ff88', '#76ff03']
     },
     {
       id: 'red-ruby-gold',
-      name: 'Tulipanes Rojo Rubi y Oro',
+      name: 'Tulipanes Rojo Rubi Imperial',
       flower: {
         dense: '#ffffff',
         body: '#ff1744',
         highlight: '#ff5252',
-        shadow: '#b71c1c',
+        shadow: '#9b0000',
         glow: '#ff1744',
-        shadowGlow: '#8b0000'
+        shadowGlow: '#7a0000'
       },
       stem: {
         dense: '#ffffff',
@@ -107,9 +107,9 @@
         dense: '#ffffff',
         body: '#d50000',
         highlight: '#ff3344',
-        shadow: '#7f0000',
+        shadow: '#700000',
         glow: '#ff0022',
-        shadowGlow: '#590000'
+        shadowGlow: '#4d0000'
       },
       stem: {
         dense: '#ffffff',
@@ -133,14 +133,8 @@
   let currentThemeIndex = 0;
 
   // ========================================================
-  // 2. GENERADOR DE TEXTURAS OFFSCREEN MULTICAPA
-  // Desacopla tallos verdes y las 3 flores rojas
+  // 2. PARSEO ANATOMICO DEL ARTE ASCII Y EXTRACCION DE DATOS
   // ========================================================
-  let stemsCanvas = null;
-  let flower1Canvas = null; // Flor izquierda
-  let flower2Canvas = null; // Flor superior derecha
-  let flower3Canvas = null; // Flor inferior derecha
-
   let artCols = 119;
   let artRows = 116;
   const CELL_WIDTH = 9;
@@ -153,155 +147,229 @@
     artCols = Math.max(...rawLines.map(l => l.length));
   }
 
-  // Puntos de anclaje (pivotes) donde cada flor conecta a su tallo
-  const PIVOT1 = { x: 55 * CELL_WIDTH, y: 54 * CELL_HEIGHT, row: 54 };
-  const PIVOT2 = { x: 88 * CELL_WIDTH, y: 38 * CELL_HEIGHT, row: 38 };
-  const PIVOT3 = { x: 98 * CELL_WIDTH, y: 60 * CELL_HEIGHT, row: 60 };
-
-  // Identificador anatomico estricto
-  function getCharacterLayer(lineNum, c) {
-    // 1. Flor izquierda (filas 29 a 54, columnas 24 a 70)
-    if (lineNum >= 29 && lineNum <= 54 && c >= 24 && c <= 70) {
-      return 'flower1';
+  // Identificador anatomico estricto y preciso al caracter
+  function getCharacterRole(lineNum, c) {
+    // 1. Flor izquierda (filas 29 a 54)
+    if (lineNum >= 29 && lineNum <= 54) {
+      let maxC = 70;
+      if (lineNum === 51) maxC = 71;
+      if (lineNum === 53) maxC = 66;
+      if (lineNum === 54) maxC = 63;
+      if (c >= 24 && c <= maxC) {
+        return { type: 'flower', id: 1, centerC: 48, baseR: 53, topR: 28 };
+      }
     }
-    // 2. Flor superior derecha (filas 14 a 38, columnas 74 a 113)
+    // 2. Flor superior derecha (filas 14 a 38)
     if (lineNum >= 14 && lineNum <= 38 && c >= 74 && c <= 113) {
-      return 'flower2';
+      return { type: 'flower', id: 2, centerC: 94, baseR: 37, topR: 13 };
     }
-    // 3. Flor inferior derecha (filas 39 a 60, respetando el tallo a la izquierda)
-    if (lineNum >= 39 && lineNum <= 60) {
-      let minC = 88;
-      if (lineNum === 39) minC = 98;
-      else if (lineNum === 40) minC = 97;
-      else if (lineNum === 41) minC = 96;
-      else if (lineNum === 42) minC = 95;
-      else if (lineNum === 43) minC = 94;
-      else if (lineNum === 44) minC = 93;
-      else if (lineNum === 45) minC = 92;
-      else if (lineNum >= 46 && lineNum <= 56) minC = 88;
-      else if (lineNum >= 57 && lineNum <= 58) minC = 90;
-      else if (lineNum === 59) minC = 92;
-      else if (lineNum === 60) minC = 95;
-
-      if (c >= minC && c <= 118) {
-        return 'flower3';
+    // 3. Flor inferior derecha (filas 39 a 61)
+    if (lineNum >= 39 && lineNum <= 61) {
+      let minC = 90, maxC = 118;
+      if (lineNum === 39) { minC = 99; maxC = 115; }
+      else if (lineNum === 40) { minC = 98; maxC = 116; }
+      else if (lineNum === 41) { minC = 97; maxC = 117; }
+      else if (lineNum === 42) { minC = 96; maxC = 117; }
+      else if (lineNum === 43) { minC = 95; maxC = 117; }
+      else if (lineNum === 44) { minC = 94; maxC = 117; }
+      else if (lineNum === 45) { minC = 93; maxC = 117; }
+      else if (lineNum === 46) { minC = 92; maxC = 117; }
+      else if (lineNum <= 49) { minC = 91; maxC = 117; }
+      else if (lineNum <= 51) { minC = 90; maxC = 117; }
+      else if (lineNum <= 54) { minC = 89; maxC = 116; }
+      else if (lineNum === 55) { minC = 90; maxC = 115; }
+      else if (lineNum === 56) { minC = 91; maxC = 114; }
+      else if (lineNum === 57) { minC = 92; maxC = 113; }
+      else if (lineNum === 58) { minC = 93; maxC = 112; }
+      else if (lineNum === 59) { minC = 94; maxC = 110; }
+      else if (lineNum === 60) { minC = 97; maxC = 109; }
+      else if (lineNum === 61) { minC = 98; maxC = 101; }
+      if (c >= minC && c <= maxC) {
+        return { type: 'flower', id: 3, centerC: 104, baseR: 60, topR: 38 };
       }
     }
-    return 'stems';
+    if (lineNum >= 112) return { type: 'base' };
+    return { type: 'stem' };
   }
 
-  function createLayerCanvas() {
-    const c = document.createElement('canvas');
-    c.width = artCols * CELL_WIDTH * 2;
-    c.height = artRows * CELL_HEIGHT * 2;
-    return c;
-  }
-
-  function renderAllLayers(theme) {
-    if (!stemsCanvas) {
-      stemsCanvas = createLayerCanvas();
-      flower1Canvas = createLayerCanvas();
-      flower2Canvas = createLayerCanvas();
-      flower3Canvas = createLayerCanvas();
-    }
-
-    const texW = artCols * CELL_WIDTH;
-    const texH = artRows * CELL_HEIGHT;
-
-    const layers = [
-      { canvas: stemsCanvas, type: 'stems' },
-      { canvas: flower1Canvas, type: 'flower1' },
-      { canvas: flower2Canvas, type: 'flower2' },
-      { canvas: flower3Canvas, type: 'flower3' }
-    ];
-
-    layers.forEach(layer => {
-      const octx = layer.canvas.getContext('2d');
-      octx.setTransform(1, 0, 0, 1, 0, 0);
-      octx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
-      octx.scale(2, 2);
-      octx.font = '700 11px "JetBrains Mono", "Fira Code", monospace';
-      octx.textBaseline = 'top';
-      octx.textAlign = 'left';
-
-      for (let r = 0; r < rawLines.length; r++) {
-        const lineNum = r + 1;
-        const line = rawLines[r];
-        const y = r * CELL_HEIGHT;
-
-        for (let c = 0; c < line.length; c++) {
-          const char = line[c];
-          if (char === ' ') continue;
-
-          const charLayer = getCharacterLayer(lineNum, c);
-          const x = c * CELL_WIDTH;
-
-          // Dibujar caracter si corresponde a esta capa
-          if (layer.type === 'stems') {
-            if (char === ':') {
-              // Fondo etereo de baja intensidad
-              octx.fillStyle = theme.bgGrid;
-              octx.shadowBlur = 0;
-              octx.fillText(char, x, y);
-            } else if (lineNum >= 112) {
-              // Suelo / Base dorada
-              octx.shadowColor = theme.base.glow;
-              octx.shadowBlur = 10;
-              octx.fillStyle = theme.base.dense;
-              octx.fillText(char, x, y);
-            } else if (charLayer === 'stems') {
-              // Tallo o hoja verde
-              const st = theme.stem;
-              if (char === '@' || char === '%' || char === '#') {
-                octx.shadowColor = st.glow;
-                octx.shadowBlur = 12;
-                octx.fillStyle = st.body;
-                octx.fillText(char, x, y);
-                octx.shadowBlur = 3;
-                octx.fillStyle = '#ffffff';
-                octx.fillText(char, x, y);
-              } else if (char === '*' || char === '+') {
-                octx.shadowColor = st.glow;
-                octx.shadowBlur = 8;
-                octx.fillStyle = st.highlight;
-                octx.fillText(char, x, y);
-              } else {
-                octx.shadowColor = st.shadowGlow;
-                octx.shadowBlur = 4;
-                octx.fillStyle = st.shadow;
-                octx.fillText(char, x, y);
-              }
-            }
-          } else if (layer.type === charLayer) {
-            // Petalo de tulipan ROJO
-            const fl = theme.flower;
-            if (char === '@' || char === '%' || char === '#') {
-              octx.shadowColor = fl.glow;
-              octx.shadowBlur = 14;
-              octx.fillStyle = fl.body;
-              octx.fillText(char, x, y);
-              octx.shadowBlur = 3;
-              octx.fillStyle = '#ffffff';
-              octx.fillText(char, x, y);
-            } else if (char === '*' || char === '+') {
-              octx.shadowColor = fl.glow;
-              octx.shadowBlur = 9;
-              octx.fillStyle = fl.highlight;
-              octx.fillText(char, x, y);
-            } else {
-              octx.shadowColor = fl.shadowGlow;
-              octx.shadowBlur = 5;
-              octx.fillStyle = fl.shadow;
-              octx.fillText(char, x, y);
-            }
-          }
-        }
+  // Arreglo de los 2,099 caracteres de flores rojas interactivos
+  const flowerCharacters = [];
+  for (let r = 0; r < rawLines.length; r++) {
+    const line = rawLines[r];
+    const lineNum = r + 1;
+    for (let c = 0; c < line.length; c++) {
+      const char = line[c];
+      if (char === ' ' || char === ':') continue;
+      const role = getCharacterRole(lineNum, c);
+      if (role.type === 'flower') {
+        let tier = 3;
+        if (char === '@' || char === '%') tier = 0; // denso
+        else if (char === '#') tier = 1; // cuerpo
+        else if (char === '*' || char === '+') tier = 2; // realce
+        flowerCharacters.push({
+          char,
+          r,
+          c,
+          flowerId: role.id,
+          centerC: role.centerC,
+          baseR: role.baseR,
+          topR: role.topR,
+          tier
+        });
       }
-    });
+    }
   }
 
   // ========================================================
-  // 3. MOTOR DE PARTICULAS Y PETALOS FLOTANTES
+  // 3. ATLAS DE GLIFOS Y TEXTURAS OFFSCREEN EN ALTA DEFINICION
+  // ========================================================
+  const GLYPH_CHARS = ['@', '%', '#', '*', '+', '-', '='];
+  const GLYPH_INDEX = { '@': 0, '%': 1, '#': 2, '*': 3, '+': 4, '-': 5, '=': 6 };
+  const TILE_SIZE = 32;
+
+  let glyphAtlasCanvas = null;
+  let stemsCanvas = null;
+  let bgCanvas = null;
+
+  function buildGlyphAtlas(theme) {
+    if (!glyphAtlasCanvas) {
+      glyphAtlasCanvas = document.createElement('canvas');
+      glyphAtlasCanvas.width = GLYPH_CHARS.length * TILE_SIZE * 2;
+      glyphAtlasCanvas.height = 4 * TILE_SIZE * 2;
+    }
+    const actx = glyphAtlasCanvas.getContext('2d');
+    actx.setTransform(1, 0, 0, 1, 0, 0);
+    actx.clearRect(0, 0, glyphAtlasCanvas.width, glyphAtlasCanvas.height);
+    actx.scale(2, 2);
+    actx.font = '700 11px "JetBrains Mono", "Fira Code", monospace';
+    actx.textAlign = 'center';
+    actx.textBaseline = 'middle';
+
+    const fl = theme.flower;
+    const tierStyles = [
+      { fill: fl.dense, glow: fl.glow, blur: 14, isCore: true },
+      { fill: fl.body, glow: fl.glow, blur: 10, isCore: false },
+      { fill: fl.highlight, glow: fl.highlight, blur: 8, isCore: false },
+      { fill: fl.shadow, glow: fl.shadowGlow, blur: 5, isCore: false }
+    ];
+
+    for (let tier = 0; tier < 4; tier++) {
+      const style = tierStyles[tier];
+      for (let g = 0; g < GLYPH_CHARS.length; g++) {
+        const char = GLYPH_CHARS[g];
+        const cx = g * TILE_SIZE + TILE_SIZE / 2;
+        const cy = tier * TILE_SIZE + TILE_SIZE / 2;
+
+        actx.save();
+        actx.shadowColor = style.glow;
+        actx.shadowBlur = style.blur;
+        actx.fillStyle = style.fill;
+        actx.fillText(char, cx, cy);
+
+        if (style.isCore) {
+          actx.shadowBlur = 3;
+          actx.fillStyle = '#ffffff';
+          actx.fillText(char, cx, cy);
+        }
+        actx.restore();
+      }
+    }
+  }
+
+  function renderStaticBuffers(theme) {
+    if (!stemsCanvas) {
+      stemsCanvas = document.createElement('canvas');
+      stemsCanvas.width = artCols * CELL_WIDTH * 2;
+      stemsCanvas.height = artRows * CELL_HEIGHT * 2;
+
+      bgCanvas = document.createElement('canvas');
+      bgCanvas.width = artCols * CELL_WIDTH * 2;
+      bgCanvas.height = artRows * CELL_HEIGHT * 2;
+    }
+
+    // A. Fondo etereo de matriz de dos puntos (colons)
+    const bctx = bgCanvas.getContext('2d');
+    bctx.setTransform(1, 0, 0, 1, 0, 0);
+    bctx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+    bctx.scale(2, 2);
+    bctx.font = '700 11px "JetBrains Mono", "Fira Code", monospace';
+    bctx.textAlign = 'left';
+    bctx.textBaseline = 'top';
+    bctx.fillStyle = theme.bgGrid;
+
+    for (let r = 0; r < rawLines.length; r++) {
+      const line = rawLines[r];
+      const y = r * CELL_HEIGHT;
+      for (let c = 0; c < line.length; c++) {
+        if (line[c] === ':') {
+          bctx.fillText(':', c * CELL_WIDTH, y);
+        }
+      }
+    }
+
+    // B. Tallos verdes, hojas y suelo dorado
+    const sctx = stemsCanvas.getContext('2d');
+    sctx.setTransform(1, 0, 0, 1, 0, 0);
+    sctx.clearRect(0, 0, stemsCanvas.width, stemsCanvas.height);
+    sctx.scale(2, 2);
+    sctx.font = '700 11px "JetBrains Mono", "Fira Code", monospace';
+    sctx.textAlign = 'left';
+    sctx.textBaseline = 'top';
+
+    const st = theme.stem;
+    const bs = theme.base;
+
+    for (let r = 0; r < rawLines.length; r++) {
+      const lineNum = r + 1;
+      const line = rawLines[r];
+      const y = r * CELL_HEIGHT;
+
+      for (let c = 0; c < line.length; c++) {
+        const char = line[c];
+        if (char === ' ' || char === ':') continue;
+
+        const role = getCharacterRole(lineNum, c);
+        if (role.type === 'flower') continue; // Las flores se dibujan en vivo
+
+        const x = c * CELL_WIDTH;
+
+        if (role.type === 'base') {
+          sctx.shadowColor = bs.glow;
+          sctx.shadowBlur = 10;
+          sctx.fillStyle = bs.dense;
+          sctx.fillText(char, x, y);
+        } else if (role.type === 'stem') {
+          if (char === '@' || char === '%' || char === '#') {
+            sctx.shadowColor = st.glow;
+            sctx.shadowBlur = 12;
+            sctx.fillStyle = st.body;
+            sctx.fillText(char, x, y);
+            sctx.shadowBlur = 3;
+            sctx.fillStyle = '#ffffff';
+            sctx.fillText(char, x, y);
+          } else if (char === '*' || char === '+') {
+            sctx.shadowColor = st.glow;
+            sctx.shadowBlur = 8;
+            sctx.fillStyle = st.highlight;
+            sctx.fillText(char, x, y);
+          } else {
+            sctx.shadowColor = st.shadowGlow;
+            sctx.shadowBlur = 4;
+            sctx.fillStyle = st.shadow;
+            sctx.fillText(char, x, y);
+          }
+        }
+      }
+    }
+  }
+
+  function applyTheme(theme) {
+    buildGlyphAtlas(theme);
+    renderStaticBuffers(theme);
+  }
+
+  // ========================================================
+  // 4. PARTICULAS AMBIENTALES Y ESTELA DE CHISPAS
   // ========================================================
   class FloatingPetal {
     constructor() {
@@ -317,7 +385,7 @@
       this.rotation = Math.random() * Math.PI * 2;
       this.rotSpeed = (Math.random() - 0.5) * 0.025;
       this.alpha = 0.25 + Math.random() * 0.55;
-      this.color = Math.random() > 0.35 ? '#ff0033' : '#ff2a4b';
+      this.color = Math.random() > 0.35 ? '#ff0038' : '#ff2a4b';
     }
 
     update() {
@@ -386,10 +454,6 @@
     }
   }
 
-  const petals = [];
-  const stars = [];
-  const sparkles = [];
-
   class SparkleParticle {
     constructor(x, y) {
       this.x = x;
@@ -422,6 +486,10 @@
     }
   }
 
+  const petals = [];
+  const stars = [];
+  const sparkles = [];
+
   function spawnSparkles(x, y, count = 2) {
     for (let i = 0; i < count; i++) {
       if (sparkles.length < 80) {
@@ -434,7 +502,7 @@
   for (let i = 0; i < 28; i++) stars.push(new StardustParticle());
 
   // ========================================================
-  // 4. CAMARA Y FISICA DE VIENTO ARMONICO
+  // 5. CAMARA Y FISICA BOTANICA CONTINUA (CANTILEVER BEAM)
   // ========================================================
   const camera = {
     x: 0,
@@ -452,9 +520,8 @@
     camera.artW = artCols * CELL_WIDTH;
     camera.artH = artRows * CELL_HEIGHT;
 
-    // Margen holgado para centrado optimo en movil
-    const marginX = viewportWidth * 0.86;
-    const marginY = viewportHeight * 0.82;
+    const marginX = viewportWidth * 0.88;
+    const marginY = viewportHeight * 0.84;
 
     const scaleX = marginX / camera.artW;
     const scaleY = marginY / camera.artH;
@@ -469,23 +536,23 @@
     camera.y = camera.targetY;
   }
 
-  // Calculo del balanceo organico por fila
   let windForce = 0;
   let windVelocity = 0;
 
-  function calculateRowSway(r, now) {
-    const totalRows = artRows;
-    const normH = Math.max(0, (totalRows - 1 - r) / (totalRows - 1));
-    const flex = Math.pow(normH, 1.35);
+  // Deformacion suave y continua del tallo:
+  // La base (r >= 112) tiene deflexion exactamente 0.
+  // El vertice superior se inclina con una curvatura cuadratica continua
+  function calculateStemSway(r, now) {
+    const normH = Math.max(0, Math.min(1, (112 - r) / 112));
+    const flex = Math.pow(normH, 1.85);
 
-    const natural = Math.sin(now * 0.0013 + r * 0.022) * 16 * flex +
-                    Math.sin(now * 0.0026 + r * 0.045) * 6 * flex;
+    const wave1 = Math.sin(now * 0.0011 + r * 0.018) * 13 * flex;
+    const wave2 = Math.sin(now * 0.0022 + r * 0.034) * 4.5 * flex;
     const interactive = windForce * flex;
 
-    return natural + interactive;
+    return wave1 + wave2 + interactive;
   }
 
-  // Animacion de apertura / florecimiento
   let isRevealed = false;
   let revealStartTime = 0;
 
@@ -495,20 +562,17 @@
   }
 
   // ========================================================
-  // 5. RENDERIZADO DEL ARBOL DE TULIPANES Y FLORECIMIENTO
+  // 6. RENDERIZADO DINAMICO DE TALLOS Y FLORECIMIENTO
   // ========================================================
-  function drawSwayingStemsLayer(now, alpha, compositeOp, revealRatio) {
+  function drawSwayingStems(now, alpha, compositeOp) {
     ctx.save();
     if (compositeOp !== 'source-over') {
       ctx.globalCompositeOperation = compositeOp;
     }
     ctx.globalAlpha = alpha;
 
-    const totalRows = artRows;
-    const maxRow = Math.ceil(totalRows * revealRatio);
-
-    for (let r = 0; r < maxRow; r++) {
-      const sway = calculateRowSway(r, now);
+    for (let r = 0; r < artRows; r++) {
+      const sway = calculateStemSway(r, now);
 
       const sx = 0;
       const sy = r * CELL_HEIGHT * 2;
@@ -525,67 +589,82 @@
     ctx.restore();
   }
 
-  function drawBloomingFlower(flowerCanvas, pivot, now, alpha, compositeOp, bloomProgress, baseAngle, swayRow) {
-    if (bloomProgress <= 0) return;
-
+  function drawBloomingFlowers(now, alpha, compositeOp, bloomProgress) {
     ctx.save();
     if (compositeOp !== 'source-over') {
       ctx.globalCompositeOperation = compositeOp;
     }
     ctx.globalAlpha = alpha;
 
-    // Curva de florecimiento suave (cubica inversa)
+    // Curva de apertura suave (ease-out cubico)
     const easeBloom = 1 - Math.pow(1 - bloomProgress, 3);
-    // Respiracion viva sutil de los petalos
-    const breathe = 1.0 + Math.sin(now * 0.0016) * 0.035;
+    const budFactor = 1 - easeBloom;
 
-    // Apertura fisica: los petalos se abren horizontalmente de 0.58x a 1.05x
-    const scaleX = (0.58 + 0.42 * easeBloom) * breathe;
-    const scaleY = (0.86 + 0.14 * easeBloom) * breathe;
+    for (let i = 0; i < flowerCharacters.length; i++) {
+      const p = flowerCharacters[i];
+      const gIndex = GLYPH_INDEX[p.char];
+      if (gIndex === undefined) continue;
 
-    // Balanceo del tallo en el punto de anclaje de la flor
-    const stemSway = calculateRowSway(pivot.row, now);
-    const stemSwayAbove = calculateRowSway(Math.max(0, pivot.row - 6), now);
-    // Inclinacion natural calculada por la pendiente de la curva del tallo
-    const stemSlopeAngle = (stemSwayAbove - stemSway) / (6 * CELL_HEIGHT);
-    const flowerAngle = baseAngle * easeBloom + stemSlopeAngle;
+      // Altura normalizada dentro del capullo (0 en la base, 1 en la punta del petalo)
+      const hNorm = (p.baseR - p.r) / (p.baseR - p.topR);
+      const deltaC = p.c - p.centerC;
 
-    // Ubicacion del pivote en el lienzo
-    const worldPivotX = -camera.artW / 2 + pivot.x + stemSway;
-    const worldPivotY = -camera.artH / 2 + pivot.y;
+      // 1. Apertura natural de los petalos:
+      // En fase de capullo cerrado (budFactor > 0), los petalos superiores se cierran hacia el centro.
+      // Al florecer (budFactor -> 0), se abren hacia afuera lateralmente.
+      const bloomOffsetX = -deltaC * CELL_WIDTH * budFactor * 0.52 * Math.pow(hNorm, 1.15);
+      const bloomOffsetY = (p.baseR - p.r) * CELL_HEIGHT * budFactor * 0.12;
 
-    ctx.translate(worldPivotX, worldPivotY);
-    ctx.rotate(flowerAngle);
-    ctx.scale(scaleX, scaleY);
+      // 2. Respiracion organica continua de los petalos abiertos
+      const breathePhase = now * 0.0016 + p.flowerId * 1.4;
+      const breatheAmp = Math.sin(breathePhase);
+      const breatheX = deltaC * CELL_WIDTH * breatheAmp * 0.035 * hNorm;
+      const breatheY = - (p.baseR - p.r) * CELL_HEIGHT * breatheAmp * 0.012;
 
-    // Dibujar el lienzo de la flor con centro exacto en el pivote
-    ctx.drawImage(flowerCanvas, -pivot.x, -pivot.y, camera.artW, camera.artH);
+      // 3. Balanceo armonico unificado con la columna del tallo
+      const stemSway = calculateStemSway(p.r, now);
+
+      // Posicion final sin deformacion tipografica de la fuente
+      const finalX = -camera.artW / 2 + p.c * CELL_WIDTH + stemSway + bloomOffsetX + breatheX;
+      const finalY = -camera.artH / 2 + p.r * CELL_HEIGHT + bloomOffsetY + breatheY;
+
+      // Blit de alto rendimiento desde el atlas de glifos pre-renderizado
+      const sx = gIndex * TILE_SIZE * 2;
+      const sy = p.tier * TILE_SIZE * 2;
+      const sw = TILE_SIZE * 2;
+      const sh = TILE_SIZE * 2;
+
+      const dx = finalX + (CELL_WIDTH / 2) - (TILE_SIZE / 2);
+      const dy = finalY + (CELL_HEIGHT / 2) - (TILE_SIZE / 2);
+      const dw = TILE_SIZE;
+      const dh = TILE_SIZE;
+
+      ctx.drawImage(glyphAtlasCanvas, sx, sy, sw, sh, dx, dy, dw, dh);
+    }
 
     ctx.restore();
   }
 
   // ========================================================
-  // 6. BUCLE PRINCIPAL DE DIBUJO (60/120 FPS)
+  // 7. BUCLE PRINCIPAL DE DIBUJO (60/120 FPS FLUIDO)
   // ========================================================
   function loop(now) {
-    // Interpolacion de camara suave (lerp)
     camera.x += (camera.targetX - camera.x) * 0.18;
     camera.y += (camera.targetY - camera.y) * 0.18;
     camera.scale += (camera.targetScale - camera.scale) * 0.18;
 
-    // Amortiguacion y retorno del viento
     windForce += (windVelocity - windForce * 0.08);
     windVelocity *= 0.92;
 
     let bloomProgress = 0;
     if (isRevealed) {
-      const elapsed = (now - revealStartTime) / 2600; // 2.6s para abrirse por completo
+      const elapsed = (now - revealStartTime) / 2800; // 2.8s para apertura botanica completa
       bloomProgress = Math.min(1, Math.max(0, elapsed));
     }
 
     ctx.clearRect(0, 0, mainStage.width, mainStage.height);
 
-    // 1. Dibujar particulas flotantes de luz y petalos
+    // 1. Particulas ambientales y estela tactil
     for (let i = 0; i < stars.length; i++) {
       stars[i].update();
       stars[i].draw(ctx);
@@ -594,7 +673,6 @@
       petals[i].update();
       petals[i].draw(ctx);
     }
-    // 1.5. Estela de chispas interactivas al tacto
     for (let i = sparkles.length - 1; i >= 0; i--) {
       sparkles[i].update();
       if (sparkles[i].alpha <= 0) {
@@ -604,7 +682,7 @@
       }
     }
 
-    // 2. Renderizado de los tulipanes en Canvas
+    // 2. Renderizado del ramo de tulipanes en Canvas
     if (isRevealed && stemsCanvas) {
       ctx.save();
       ctx.scale(dpr, dpr);
@@ -613,21 +691,19 @@
 
       const breathingGlow = 0.88 + Math.sin(now * 0.002) * 0.12;
 
-      // A) Tallos y Hojas Verdes (Bloom + Primario)
-      drawSwayingStemsLayer(now, 0.40 * breathingGlow, 'screen', 1.0);
-      drawSwayingStemsLayer(now, 1.0, 'source-over', 1.0);
+      // A. Matriz serena de fondo (estatica)
+      if (bgCanvas) {
+        ctx.drawImage(bgCanvas, 0, 0, bgCanvas.width, bgCanvas.height, -camera.artW / 2, -camera.artH / 2, camera.artW, camera.artH);
+      }
 
-      // B) Flor 1 (Izquierda): Florece abriendose hacia la izquierda (-0.08 rad)
-      drawBloomingFlower(flower1Canvas, PIVOT1, now, 0.45 * breathingGlow, 'screen', bloomProgress, -0.08, PIVOT1.row);
-      drawBloomingFlower(flower1Canvas, PIVOT1, now, 1.0, 'source-over', bloomProgress, -0.08, PIVOT1.row);
+      // B. Tallos y follaje verde (Pase Bloom + Pase Primario)
+      drawSwayingStems(now, 0.35 * breathingGlow, 'screen');
+      drawSwayingStems(now, 1.0, 'source-over');
 
-      // C) Flor 2 (Superior derecha): Florece abriendose hacia arriba/derecha (+0.04 rad)
-      drawBloomingFlower(flower2Canvas, PIVOT2, now, 0.45 * breathingGlow, 'screen', bloomProgress, 0.04, PIVOT2.row);
-      drawBloomingFlower(flower2Canvas, PIVOT2, now, 1.0, 'source-over', bloomProgress, 0.04, PIVOT2.row);
-
-      // D) Flor 3 (Inferior derecha): Florece abriendose hacia la derecha (+0.06 rad)
-      drawBloomingFlower(flower3Canvas, PIVOT3, now, 0.45 * breathingGlow, 'screen', bloomProgress, 0.06, PIVOT3.row);
-      drawBloomingFlower(flower3Canvas, PIVOT3, now, 1.0, 'source-over', bloomProgress, 0.06, PIVOT3.row);
+      // C. Flores rojas vivas abriendose (Pase Bloom + Pase Primario)
+      const flowerAlpha = Math.min(1, bloomProgress * 1.5);
+      drawBloomingFlowers(now, 0.40 * breathingGlow * flowerAlpha, 'screen', bloomProgress);
+      drawBloomingFlowers(now, 1.0 * flowerAlpha, 'source-over', bloomProgress);
 
       ctx.restore();
     }
@@ -636,7 +712,7 @@
   }
 
   // ========================================================
-  // 7. GESTOS TACTILES Y RATON (FLUIDO CON INERCIA)
+  // 8. GESTOS TACTILES Y RATON (FLUIDO CON INERCIA)
   // ========================================================
   let touchStartDist = 0;
   let touchStartScale = 1;
@@ -678,7 +754,7 @@
       const dy = e.touches[0].clientY - lastY;
       camera.targetX += dx;
       camera.targetY += dy;
-      windVelocity += dx * 0.14; // Brisa al deslizar
+      windVelocity += dx * 0.14;
       spawnSparkles(e.touches[0].clientX, e.touches[0].clientY, 2);
       lastX = e.touches[0].clientX;
       lastY = e.touches[0].clientY;
@@ -730,7 +806,7 @@
   }, { passive: false });
 
   // ========================================================
-  // 8. SINTETIZADOR DE AUDIO PROCEDURAL (CALIDO Y RELAJANTE)
+  // 9. SINTETIZADOR DE AUDIO PROCEDURAL (CALIDO Y RELAJANTE)
   // ========================================================
   class FloralSoundtrack {
     constructor() {
@@ -877,7 +953,7 @@
   const soundtrack = new FloralSoundtrack();
 
   // ========================================================
-  // 9. EVENTOS DE INTERFAZ Y APERTURA
+  // 10. EVENTOS DE INTERFAZ Y APERTURA
   // ========================================================
   function startExperience() {
     soundtrack.start();
@@ -902,7 +978,7 @@
   });
 
   // ========================================================
-  // 10. CONTROLADOR DE LA CARTA DEDICATORIA (BOTTOM-SHEET)
+  // 11. CONTROLADOR DE LA CARTA DEDICATORIA (BOTTOM-SHEET)
   // Despliegue nativo y gesto de deslizar hacia abajo
   // ========================================================
   function openLetterSheet() {
@@ -931,7 +1007,6 @@
     closeLetterSheet();
   });
 
-  // Gesto tactil de arrastre hacia abajo para cerrar la carta (drag-to-dismiss)
   let sheetStartY = 0;
   let isDraggingSheet = false;
 
@@ -967,7 +1042,7 @@
   themeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     currentThemeIndex = (currentThemeIndex + 1) % FLORAL_THEMES.length;
-    renderAllLayers(FLORAL_THEMES[currentThemeIndex]);
+    applyTheme(FLORAL_THEMES[currentThemeIndex]);
   });
 
   resetBtn.addEventListener('click', (e) => {
@@ -1002,7 +1077,7 @@
 
   // Inicializacion
   resizeStage();
-  renderAllLayers(FLORAL_THEMES[currentThemeIndex]);
+  applyTheme(FLORAL_THEMES[currentThemeIndex]);
   updateFitScale();
   requestAnimationFrame(loop);
 })();
