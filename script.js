@@ -319,7 +319,7 @@
 
     update() {
       this.y += this.speedY;
-      this.x += this.speedX;
+      this.x += this.speedX + (windForce * 0.04);
       this.pulsePhase += this.pulseRate;
       this.alpha = this.baseAlpha + Math.sin(this.pulsePhase) * 0.18;
 
@@ -393,13 +393,67 @@
   }
 
   // ========================================================
-  // 5. BUCLE PRINCIPAL DE DIBUJO (60/120 FPS)
+  // 5. FISICA DEL VIENTO Y MOVIMIENTO ORGANICO DE TULIPANES
+  // Oscilacion armonica natural en los tallos y petalos
+  // ========================================================
+  let windForce = 0;
+  let windVelocity = 0;
+
+  function drawSwayingTulips(now, alpha, compositeOp, clipRatio) {
+    ctx.save();
+    if (compositeOp !== 'source-over') {
+      ctx.globalCompositeOperation = compositeOp;
+    }
+    ctx.globalAlpha = alpha;
+
+    const totalRows = artRows;
+    const maxRowToDraw = Math.ceil(totalRows * clipRatio);
+
+    for (let r = 0; r < maxRowToDraw; r++) {
+      // Progresion de altura: 0 en el suelo (r = 115), 1 en la flor mas alta (r = 0)
+      const normalizedHeight = Math.max(0, (totalRows - 1 - r) / (totalRows - 1));
+      // Curva fisica de flexion (los tallos se doblan progresivamente con la altura)
+      const flex = Math.pow(normalizedHeight, 1.35);
+
+      // Brisa suave natural: combinacion de dos ondas sinusoidales lentas y elegantes
+      const naturalSway = Math.sin(now * 0.0013 + r * 0.022) * 16 * flex +
+                          Math.sin(now * 0.0026 + r * 0.045) * 6 * flex;
+
+      // Inercia interactiva del viento generada al tocar o deslizar
+      const interactiveSway = windForce * flex;
+
+      const totalSway = naturalSway + interactiveSway;
+
+      // Coordenadas origen en el canvas previo (escala 2x)
+      const sx = 0;
+      const sy = r * CELL_HEIGHT * 2;
+      const sw = offscreenCanvas.width;
+      const sh = CELL_HEIGHT * 2;
+
+      // Coordenadas destino con desplazamiento horizontal curvado por fila
+      const dx = -camera.artW / 2 + totalSway;
+      const dy = -camera.artH / 2 + r * CELL_HEIGHT;
+      const dw = camera.artW;
+      const dh = CELL_HEIGHT;
+
+      ctx.drawImage(offscreenCanvas, sx, sy, sw, sh, dx, dy, dw, dh);
+    }
+
+    ctx.restore();
+  }
+
+  // ========================================================
+  // 6. BUCLE PRINCIPAL DE DIBUJO (60/120 FPS)
   // ========================================================
   function loop(now) {
-    // Interpolacion suave
+    // Interpolacion suave de la camara
     camera.x += (camera.targetX - camera.x) * 0.18;
     camera.y += (camera.targetY - camera.y) * 0.18;
     camera.scale += (camera.targetScale - camera.scale) * 0.18;
+
+    // Amortiguacion y retorno elastico del viento
+    windForce += (windVelocity - windForce * 0.08);
+    windVelocity *= 0.92;
 
     if (isRevealed && revealProgress < 1) {
       const elapsed = (now - revealStartTime) / 2200; // 2.2 segundos de florecimiento
@@ -410,46 +464,31 @@
 
     const theme = FLORAL_THEMES[currentThemeIndex];
 
-    // 1. Particulas florales flotantes
+    // 1. Particulas florales flotantes (reaccionan sutilmente a la brisa)
     for (let i = 0; i < particles.length; i++) {
       particles[i].update();
       particles[i].draw(ctx, theme.particleColors);
     }
 
-    // 2. Renderizado del arte en Canvas
+    // 2. Renderizado del arte con oscilacion de viento en Canvas
     if (isRevealed && offscreenCanvas) {
       ctx.save();
       ctx.scale(dpr, dpr);
       ctx.translate(camera.x, camera.y);
       ctx.scale(camera.scale, camera.scale);
 
-      const drawX = -camera.artW / 2;
-      const drawY = -camera.artH / 2;
-
       const breathingGlow = 0.88 + Math.sin(now * 0.002) * 0.12;
 
-      // Capa de Bloom Optico (Lighter blend para resplandor calido)
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha = 0.42 * breathingGlow;
-      ctx.drawImage(offscreenCanvas, drawX, drawY, camera.artW, camera.artH);
-      ctx.restore();
+      // Capa de Bloom Optico (con movimiento sincronizado de cada hilera)
+      drawSwayingTulips(now, 0.42 * breathingGlow, 'screen', revealProgress);
 
-      // Capa Nitida Primaria
-      ctx.save();
-      if (revealProgress < 1) {
-        // Barrido vertical de arriba hacia abajo (florece progresivamente)
-        const clipHeight = camera.artH * revealProgress;
-        ctx.beginPath();
-        ctx.rect(drawX, drawY, camera.artW, clipHeight);
-        ctx.clip();
-      }
-      ctx.globalAlpha = 1.0;
-      ctx.drawImage(offscreenCanvas, drawX, drawY, camera.artW, camera.artH);
+      // Capa Nitida Primaria (con movimiento sincronizado de cada hilera)
+      drawSwayingTulips(now, 1.0, 'source-over', revealProgress);
 
-      // Linea de barrido de luz durante la apertura
+      // Linea de barrido luminoso durante la apertura
       if (revealProgress > 0 && revealProgress < 1) {
-        const scanY = drawY + camera.artH * revealProgress;
+        const drawX = -camera.artW / 2;
+        const scanY = -camera.artH / 2 + camera.artH * revealProgress;
         const scanGrad = ctx.createLinearGradient(drawX, scanY - 20, drawX, scanY + 20);
         scanGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
         scanGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.95)');
@@ -457,7 +496,6 @@
         ctx.fillStyle = scanGrad;
         ctx.fillRect(drawX, scanY - 20, camera.artW, 40);
       }
-      ctx.restore();
 
       ctx.restore();
     }
@@ -466,7 +504,7 @@
   }
 
   // ========================================================
-  // 6. GESTOS TACTILES Y EVENTOS DE RATON
+  // 7. GESTOS TACTILES Y EVENTOS DE RATON
   // ========================================================
   let touchStartDist = 0;
   let touchStartScale = 1;
@@ -508,6 +546,7 @@
       const dy = e.touches[0].clientY - lastY;
       camera.targetX += dx;
       camera.targetY += dy;
+      windVelocity += dx * 0.14; // Impulso de brisa interactiva
       lastX = e.touches[0].clientX;
       lastY = e.touches[0].clientY;
     } else if (e.touches.length === 2 && touchStartDist > 0) {
@@ -540,6 +579,7 @@
     const dy = e.clientY - lastY;
     camera.targetX += dx;
     camera.targetY += dy;
+    windVelocity += dx * 0.14; // Impulso de brisa con raton
     lastX = e.clientX;
     lastY = e.clientY;
   });
