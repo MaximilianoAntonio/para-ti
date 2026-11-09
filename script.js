@@ -1,7 +1,7 @@
 /**
  * ========================================================
- * MOTOR DE RENDERIZADO EN CANVAS Y EXPERIENCIA INMERSIVA
- * Arte ASCII Glow de alta fidelidad para dispositivos moviles
+ * MOTOR DE RENDERIZADO EN CANVAS - TULIPANES EN NEON GLOW
+ * Renderizado multicolor de alta fidelidad para moviles
  * ========================================================
  */
 
@@ -21,7 +21,7 @@
   const iconAudioOff = document.getElementById('icon-audio-off');
   const gestureHint = document.getElementById('gesture-hint');
 
-  // Dimensiones del lienzo
+  // Dimensiones del visor y soporte de Retina / Alta densidad de pixeles
   let viewportWidth = window.innerWidth;
   let viewportHeight = window.innerHeight;
   let dpr = Math.min(window.devicePixelRatio || 1, 2.5);
@@ -37,58 +37,138 @@
   }
 
   // ========================================================
-  // 1. PALETAS DE COLOR PROFESIONALES
+  // 1. PALETAS FLORALES MULTICOLOR (DISENO NATURAL Y RICO)
+  // Cada parte (petalos, tallos, hojas, base y cielo) tiene su color
   // ========================================================
-  const THEMES = [
+  const FLORAL_THEMES = [
     {
-      id: 'neon-romance',
-      name: 'Rosa y Violeta Neon',
-      core: '#ffffff',
-      highGlow: '#ff1475',
-      highText: '#ffffff',
-      midGlow: '#c752ff',
-      midText: '#ff7bb5',
-      lowGlow: '#7b1fa2',
-      lowText: '#af40e8',
-      bgGrid: 'rgba(180, 100, 240, 0.16)',
-      particle1: '#ff2a85',
-      particle2: '#c752ff'
+      id: 'vibrant-garden',
+      name: 'Jardin de Tulipanes',
+      // Flor derecha: Rosa Rubi y Carmesi Fucsia
+      flowerRight: {
+        dense: '#ffffff',
+        body: '#ff0055',
+        highlight: '#ff6699',
+        shadow: '#c2185b',
+        glow: '#ff0066',
+        shadowGlow: '#ad1457'
+      },
+      // Flor izquierda: Coral Fuego y Oro Melocoton
+      flowerLeft: {
+        dense: '#ffffff',
+        body: '#ff3d00',
+        highlight: '#ff9100',
+        shadow: '#d84315',
+        glow: '#ff5722',
+        shadowGlow: '#bf360c'
+      },
+      // Tallos y follaje: Verde Esmeralda y Menta Lima
+      stem: {
+        dense: '#ffffff',
+        body: '#00e676',
+        highlight: '#76ff03',
+        shadow: '#00796b',
+        glow: '#00ff88',
+        shadowGlow: '#004d40'
+      },
+      // Suelo / Base
+      base: {
+        dense: '#ffd54f',
+        highlight: '#ffb300',
+        shadow: '#ff8f00',
+        glow: '#ffa000'
+      },
+      // Cuadricula cosmica tenue de fondo
+      bgGrid: 'rgba(120, 160, 255, 0.12)',
+      particleColors: ['#ff0055', '#ff9100', '#00ff88', '#76ff03']
+    },
+    {
+      id: 'violet-romance',
+      name: 'Tulipanes Violeta y Magenta',
+      // Flor derecha: Amatista y Purpura Real
+      flowerRight: {
+        dense: '#ffffff',
+        body: '#d500f9',
+        highlight: '#ea80fc',
+        shadow: '#8e24aa',
+        glow: '#d500f9',
+        shadowGlow: '#6a1b9a'
+      },
+      // Flor izquierda: Rosa Chicle y Rubí
+      flowerLeft: {
+        dense: '#ffffff',
+        body: '#ff1493',
+        highlight: '#ff80ab',
+        shadow: '#c2185b',
+        glow: '#ff4081',
+        shadowGlow: '#880e4f'
+      },
+      // Tallos y hojas: Verde Turquesa y Menta
+      stem: {
+        dense: '#ffffff',
+        body: '#1de9b6',
+        highlight: '#64ffda',
+        shadow: '#00897b',
+        glow: '#1de9b6',
+        shadowGlow: '#004d40'
+      },
+      // Suelo / Base
+      base: {
+        dense: '#ba68c8',
+        highlight: '#ab47bc',
+        shadow: '#6a1b9a',
+        glow: '#8e24aa'
+      },
+      bgGrid: 'rgba(180, 130, 255, 0.13)',
+      particleColors: ['#d500f9', '#ff4081', '#1de9b6', '#ea80fc']
     },
     {
       id: 'golden-sunset',
-      name: 'Luz Dorada',
-      core: '#ffffff',
-      highGlow: '#ff9900',
-      highText: '#ffffff',
-      midGlow: '#ffaa00',
-      midText: '#ffe082',
-      lowGlow: '#e65100',
-      lowText: '#ffb74d',
-      bgGrid: 'rgba(255, 183, 77, 0.15)',
-      particle1: '#f5b342',
-      particle2: '#ff8800'
-    },
-    {
-      id: 'celestial-night',
-      name: 'Cielo Nocturno',
-      core: '#ffffff',
-      highGlow: '#00e5ff',
-      highText: '#ffffff',
-      midGlow: '#0091ea',
-      midText: '#80d8ff',
-      lowGlow: '#01579b',
-      lowText: '#40c4ff',
-      bgGrid: 'rgba(64, 196, 255, 0.15)',
-      particle1: '#00e5ff',
-      particle2: '#7c4dff'
+      name: 'Tulipanes Dorados y Escarlata',
+      // Flor derecha: Oro Solar y Ambar
+      flowerRight: {
+        dense: '#ffffff',
+        body: '#ffab00',
+        highlight: '#ffe082',
+        shadow: '#ff6f00',
+        glow: '#ffa000',
+        shadowGlow: '#e65100'
+      },
+      // Flor izquierda: Escarlata y Fuego
+      flowerLeft: {
+        dense: '#ffffff',
+        body: '#ff1744',
+        highlight: '#ff5252',
+        shadow: '#b71c1c',
+        glow: '#ff1744',
+        shadowGlow: '#7f0000'
+      },
+      // Tallos y hojas: Verde Primavera Vibrante
+      stem: {
+        dense: '#ffffff',
+        body: '#64dd17',
+        highlight: '#aeea00',
+        shadow: '#33691e',
+        glow: '#76ff03',
+        shadowGlow: '#1b5e20'
+      },
+      // Suelo / Base
+      base: {
+        dense: '#ffb74d',
+        highlight: '#ffa726',
+        shadow: '#e65100',
+        glow: '#ff9800'
+      },
+      bgGrid: 'rgba(255, 210, 120, 0.13)',
+      particleColors: ['#ffab00', '#ff1744', '#76ff03', '#ffd54f']
     }
   ];
 
   let currentThemeIndex = 0;
 
   // ========================================================
-  // 2. GENERADOR DE TEXTURA OFFSCREEN (ALTA FIDELIDAD)
-  // Pre-renderizado ultra eficiente del arte ASCII
+  // 2. GENERADOR DE TEXTURA OFFSCREEN
+  // Mapeo anatomico de tulipanes y renderizado sin sobrecosto
   // ========================================================
   let offscreenCanvas = null;
   let artCols = 119;
@@ -101,6 +181,67 @@
     rawLines = window.RAW_ASCII_ART.split('\n');
     artRows = rawLines.length;
     artCols = Math.max(...rawLines.map(l => l.length));
+  }
+
+  // Identificador anatomico de la celda de tulipan
+  function getCellStyle(r, c, char, theme) {
+    if (char === ':' || char === ' ') {
+      return { fill: theme.bgGrid, glow: null, blur: 0, isBg: true };
+    }
+
+    // 1. Base / Suelo (Ultimas 4 lineas)
+    if (r >= 111) {
+      if (char === '@' || char === '%' || char === '#') {
+        return { fill: theme.base.dense, glow: theme.base.glow, blur: 12 };
+      }
+      return { fill: theme.base.highlight, glow: theme.base.glow, blur: 6 };
+    }
+
+    // 2. Anatomia floral:
+    // Hoja arqueada grande de la izquierda (filas 56 a 67, columnas <= 68)
+    const isLeftLeaf = (r >= 56 && r <= 67 && c <= 68);
+    // Tallos principales y follaje inferior (fila 56 en adelante)
+    const isLowerStem = (r >= 56);
+    // Caliz / transicion al tallo
+    const isCalyx = (r >= 52 && r <= 55 && c >= 48 && c <= 76);
+
+    if (isLeftLeaf || isLowerStem || isCalyx) {
+      // Tallos y hojas VERDES
+      if (char === '@' || char === '%' || char === '#') {
+        return { fill: theme.stem.dense, bodyColor: theme.stem.body, glow: theme.stem.glow, blur: 12, isStem: true };
+      } else if (char === '*' || char === '+') {
+        return { fill: theme.stem.highlight, glow: theme.stem.glow, blur: 8 };
+      } else {
+        return { fill: theme.stem.shadow, glow: theme.stem.shadowGlow, blur: 4 };
+      }
+    }
+
+    // 3. Flor derecha (Tulipan principal)
+    if (r <= 55 && c >= 70) {
+      const fl = theme.flowerRight;
+      if (char === '@' || char === '%' || char === '#') {
+        return { fill: fl.dense, bodyColor: fl.body, glow: fl.glow, blur: 14, isPetal: true };
+      } else if (char === '*' || char === '+') {
+        return { fill: fl.highlight, glow: fl.glow, blur: 9 };
+      } else {
+        return { fill: fl.shadow, glow: fl.shadowGlow, blur: 5 };
+      }
+    }
+
+    // 4. Flor izquierda (Tulipan secundario)
+    if (r <= 55 && c < 70) {
+      const fl = theme.flowerLeft;
+      if (char === '@' || char === '%' || char === '#') {
+        return { fill: fl.dense, bodyColor: fl.body, glow: fl.glow, blur: 14, isPetal: true };
+      } else if (char === '*' || char === '+') {
+        return { fill: fl.highlight, glow: fl.glow, blur: 9 };
+      } else {
+        return { fill: fl.shadow, glow: fl.shadowGlow, blur: 5 };
+      }
+    }
+
+    // Por defecto: Tallo verde
+    return { fill: theme.stem.highlight, glow: theme.stem.glow, blur: 6 };
   }
 
   function renderOffscreenArt(theme) {
@@ -121,7 +262,6 @@
     octx.textBaseline = 'top';
     octx.textAlign = 'left';
 
-    // Clasificacion de caracteres para profundidad optica
     for (let r = 0; r < rawLines.length; r++) {
       const line = rawLines[r];
       const y = r * CELL_HEIGHT;
@@ -131,43 +271,36 @@
         if (char === ' ') continue;
 
         const x = c * CELL_WIDTH;
+        const style = getCellStyle(r, c, char, theme);
 
-        if (char === ':') {
-          // Fondo etereo de baja intensidad (no compite con las siluetas)
-          octx.fillStyle = theme.bgGrid;
+        if (style.isBg) {
+          // Fondo etéreo de baja intensidad
+          octx.fillStyle = style.fill;
           octx.shadowBlur = 0;
           octx.fillText(char, x, y);
-        } else if (char === '@' || char === '%' || char === '#') {
-          // Contornos principales y rostros: brillo de neón intenso con núcleo blanco
-          octx.shadowColor = theme.highGlow;
-          octx.shadowBlur = 12;
-          octx.fillStyle = theme.highText;
+        } else {
+          // Elementos florales con brillo multicapa
+          octx.shadowColor = style.glow;
+          octx.shadowBlur = style.blur;
+          octx.fillStyle = style.bodyColor || style.fill;
           octx.fillText(char, x, y);
 
-          // Refuerzo del nucleo
-          octx.shadowBlur = 4;
-          octx.fillText(char, x, y);
-        } else if (char === '*' || char === '+') {
-          // Tonos medios e iluminacion secundaria
-          octx.shadowColor = theme.midGlow;
-          octx.shadowBlur = 8;
-          octx.fillStyle = theme.midText;
-          octx.fillText(char, x, y);
-        } else {
-          // Gradientes de sombra (=, -)
-          octx.shadowColor = theme.lowGlow;
-          octx.shadowBlur = 4;
-          octx.fillStyle = theme.lowText;
-          octx.fillText(char, x, y);
+          // Si es un carácter denso (@, %, #), aplicamos un núcleo blanco brillante
+          if (style.isPetal || style.isStem) {
+            octx.shadowBlur = 3;
+            octx.fillStyle = '#ffffff';
+            octx.fillText(char, x, y);
+          }
         }
       }
     }
   }
 
   // ========================================================
-  // 3. MOTOR DE PARTICULAS AMBIENTALES
+  // 3. MOTOR DE PARTICULAS FLORALES AMBIENTALES
+  // Petalos de luz y destellos esmeralda flotantes
   // ========================================================
-  class AmbientParticle {
+  class FloralParticle {
     constructor() {
       this.reset(true);
     }
@@ -175,27 +308,29 @@
     reset(initial = false) {
       this.x = Math.random() * viewportWidth;
       this.y = initial ? Math.random() * viewportHeight : viewportHeight + 15;
-      this.radius = 0.8 + Math.random() * 2.2;
-      this.speedY = -(0.2 + Math.random() * 0.45);
-      this.speedX = (Math.random() - 0.5) * 0.3;
-      this.baseAlpha = 0.15 + Math.random() * 0.5;
+      this.radius = 0.8 + Math.random() * 2.4;
+      this.speedY = -(0.2 + Math.random() * 0.5);
+      this.speedX = (Math.random() - 0.5) * 0.35;
+      this.baseAlpha = 0.2 + Math.random() * 0.55;
       this.alpha = this.baseAlpha;
       this.pulseRate = 0.02 + Math.random() * 0.03;
       this.pulsePhase = Math.random() * Math.PI * 2;
+      this.colorIndex = Math.floor(Math.random() * 4);
     }
 
     update() {
       this.y += this.speedY;
       this.x += this.speedX;
       this.pulsePhase += this.pulseRate;
-      this.alpha = this.baseAlpha + Math.sin(this.pulsePhase) * 0.15;
+      this.alpha = this.baseAlpha + Math.sin(this.pulsePhase) * 0.18;
 
       if (this.y < -15 || this.x < -15 || this.x > viewportWidth + 15) {
         this.reset(false);
       }
     }
 
-    draw(targetCtx, color) {
+    draw(targetCtx, palette) {
+      const color = palette[this.colorIndex % palette.length];
       targetCtx.save();
       targetCtx.beginPath();
       targetCtx.arc(this.x * dpr, this.y * dpr, this.radius * dpr, 0, Math.PI * 2);
@@ -209,12 +344,12 @@
   }
 
   const particles = [];
-  for (let i = 0; i < 40; i++) {
-    particles.push(new AmbientParticle());
+  for (let i = 0; i < 45; i++) {
+    particles.push(new FloralParticle());
   }
 
   // ========================================================
-  // 4. MOTOR DE CAMARA, GESTOS Y FISICA SUAVE
+  // 4. CAMARA, GESTOS Y FISICA SUAVE (LERP)
   // ========================================================
   const camera = {
     x: 0,
@@ -248,9 +383,9 @@
     camera.y = camera.targetY;
   }
 
-  // Animacion de encendido y revelacion cinematografica
+  // Animacion de encendido y florecimiento
   let isRevealed = false;
-  let revealProgress = 0; // De 0 a 1
+  let revealProgress = 0;
   let revealStartTime = 0;
 
   function triggerReveal() {
@@ -259,55 +394,52 @@
   }
 
   // ========================================================
-  // 5. BUCLE PRINCIPAL DE RENDERIZADO (60/120 FPS)
+  // 5. BUCLE PRINCIPAL DE DIBUJO (60/120 FPS)
   // ========================================================
   function loop(now) {
-    // Interpolacion de camara suave (lerp)
+    // Interpolacion suave
     camera.x += (camera.targetX - camera.x) * 0.18;
     camera.y += (camera.targetY - camera.y) * 0.18;
     camera.scale += (camera.targetScale - camera.scale) * 0.18;
 
-    // Actualizacion de animacion de revelacion
     if (isRevealed && revealProgress < 1) {
-      const elapsed = (now - revealStartTime) / 2000; // 2 segundos
+      const elapsed = (now - revealStartTime) / 2200; // 2.2 segundos de florecimiento
       revealProgress = Math.min(1, elapsed);
     }
 
     ctx.clearRect(0, 0, mainStage.width, mainStage.height);
 
-    const theme = THEMES[currentThemeIndex];
+    const theme = FLORAL_THEMES[currentThemeIndex];
 
-    // 1. Dibujar particulas de fondo
+    // 1. Particulas florales flotantes
     for (let i = 0; i < particles.length; i++) {
       particles[i].update();
-      particles[i].draw(ctx, i % 2 === 0 ? theme.particle1 : theme.particle2);
+      particles[i].draw(ctx, theme.particleColors);
     }
 
-    // 2. Dibujar arte ASCII si ya inicio la revelacion
+    // 2. Renderizado del arte en Canvas
     if (isRevealed && offscreenCanvas) {
       ctx.save();
       ctx.scale(dpr, dpr);
       ctx.translate(camera.x, camera.y);
       ctx.scale(camera.scale, camera.scale);
 
-      // Centrado respecto al origen del arte
       const drawX = -camera.artW / 2;
       const drawY = -camera.artH / 2;
 
-      // Efecto de respiracion sutil de neon
-      const breathingGlow = 0.85 + Math.sin(now * 0.002) * 0.15;
+      const breathingGlow = 0.88 + Math.sin(now * 0.002) * 0.12;
 
-      // Capa de Bloom Optico (Lighter blend)
+      // Capa de Bloom Optico (Lighter blend para resplandor calido)
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha = 0.45 * breathingGlow;
+      ctx.globalAlpha = 0.42 * breathingGlow;
       ctx.drawImage(offscreenCanvas, drawX, drawY, camera.artW, camera.artH);
       ctx.restore();
 
       // Capa Nitida Primaria
       ctx.save();
       if (revealProgress < 1) {
-        // Barrido vertical de encendido de neón
+        // Barrido vertical de arriba hacia abajo (florece progresivamente)
         const clipHeight = camera.artH * revealProgress;
         ctx.beginPath();
         ctx.rect(drawX, drawY, camera.artW, clipHeight);
@@ -316,15 +448,15 @@
       ctx.globalAlpha = 1.0;
       ctx.drawImage(offscreenCanvas, drawX, drawY, camera.artW, camera.artH);
 
-      // Linea de barrido luminoso mientras se revela
+      // Linea de barrido de luz durante la apertura
       if (revealProgress > 0 && revealProgress < 1) {
         const scanY = drawY + camera.artH * revealProgress;
-        const scanGrad = ctx.createLinearGradient(drawX, scanY - 15, drawX, scanY + 15);
+        const scanGrad = ctx.createLinearGradient(drawX, scanY - 20, drawX, scanY + 20);
         scanGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        scanGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.9)');
+        scanGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.95)');
         scanGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
         ctx.fillStyle = scanGrad;
-        ctx.fillRect(drawX, scanY - 15, camera.artW, 30);
+        ctx.fillRect(drawX, scanY - 20, camera.artW, 40);
       }
       ctx.restore();
 
@@ -335,7 +467,7 @@
   }
 
   // ========================================================
-  // 6. GESTOS TACTILES Y RATON (NIVEL NATIVO FLUIDO)
+  // 6. GESTOS TACTILES Y EVENTOS DE RATON
   // ========================================================
   let touchStartDist = 0;
   let touchStartScale = 1;
@@ -348,18 +480,11 @@
     return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
   }
 
-  function getMidpoint(t1, t2) {
-    return {
-      x: (t1.clientX + t2.clientX) / 2,
-      y: (t1.clientY + t2.clientY) / 2
-    };
-  }
-
   mainStage.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
       const now = performance.now();
       if (now - lastTapTime < 300) {
-        // Doble toque: restablecer a pantalla completa
+        // Doble toque: restablece la vista ajustada
         camera.targetScale = camera.fitScale;
         camera.targetX = viewportWidth / 2;
         camera.targetY = viewportHeight / 2;
@@ -389,7 +514,7 @@
     } else if (e.touches.length === 2 && touchStartDist > 0) {
       const currentDist = getDistance(e.touches[0], e.touches[1]);
       const factor = currentDist / touchStartDist;
-      const newScale = Math.min(Math.max(touchStartScale * factor, camera.fitScale * 0.6), camera.fitScale * 5.0);
+      const newScale = Math.min(Math.max(touchStartScale * factor, camera.fitScale * 0.5), camera.fitScale * 5.0);
       camera.targetScale = newScale;
     }
   }, { passive: true });
@@ -404,7 +529,6 @@
     }
   });
 
-  // Soporte para Raton (Desktop)
   mainStage.addEventListener('mousedown', (e) => {
     isDragging = true;
     lastX = e.clientX;
@@ -428,14 +552,13 @@
   mainStage.addEventListener('wheel', (e) => {
     e.preventDefault();
     const zoomDelta = e.deltaY < 0 ? 1.15 : 0.85;
-    camera.targetScale = Math.min(Math.max(camera.targetScale * zoomDelta, camera.fitScale * 0.6), camera.fitScale * 5.0);
+    camera.targetScale = Math.min(Math.max(camera.targetScale * zoomDelta, camera.fitScale * 0.5), camera.fitScale * 5.0);
   }, { passive: false });
 
   // ========================================================
-  // 7. SINTETIZADOR DE AUDIO PROCEDURAL (SEGURO Y ROBUSTO)
-  // Genera acordes aterciopelados y chimes sin fallos en movil
+  // 7. SINTETIZADOR DE AUDIO PROCEDURAL (MELODIA FLORAL)
   // ========================================================
-  class AtmosphericAudio {
+  class FloralSoundtrack {
     constructor() {
       this.ctx = null;
       this.master = null;
@@ -446,7 +569,6 @@
       this.loopTimer = null;
       this.chimeTimer = null;
 
-      // Acordes mayores y septimas romanticas (Hz)
       this.progression = [
         [138.59, 207.65, 261.63, 349.23], // Db major
         [116.54, 174.61, 233.08, 277.18], // Bb minor 7
@@ -454,7 +576,7 @@
         [103.83, 155.56, 207.65, 261.63]  // Ab add9
       ];
 
-      this.bells = [523.25, 659.25, 783.99, 1046.50, 1174.66];
+      this.chimes = [523.25, 659.25, 783.99, 1046.50, 1174.66];
     }
 
     init() {
@@ -467,14 +589,13 @@
 
       this.filter = this.ctx.createBiquadFilter();
       this.filter.type = 'lowpass';
-      this.filter.frequency.setValueAtTime(800, this.ctx.currentTime);
-      this.filter.Q.setValueAtTime(1.5, this.ctx.currentTime);
+      this.filter.frequency.setValueAtTime(850, this.ctx.currentTime);
+      this.filter.Q.setValueAtTime(1.4, this.ctx.currentTime);
 
-      // Stereo delay ambiental
       this.delay = this.ctx.createDelay();
-      this.delay.delayTime.setValueAtTime(0.48, this.ctx.currentTime);
+      this.delay.delayTime.setValueAtTime(0.46, this.ctx.currentTime);
       this.delayFeedback = this.ctx.createGain();
-      this.delayFeedback.gain.setValueAtTime(0.3, this.ctx.currentTime);
+      this.delayFeedback.gain.setValueAtTime(0.32, this.ctx.currentTime);
 
       this.filter.connect(this.master);
       this.filter.connect(this.delay);
@@ -496,7 +617,7 @@
       this.master.gain.linearRampToValueAtTime(0.24, t + 3.0);
 
       this.playChord();
-      this.scheduleBells();
+      this.scheduleChimes();
     }
 
     playChord() {
@@ -517,10 +638,10 @@
           osc1.frequency.setValueAtTime(freq, now);
 
           osc2.type = 'triangle';
-          osc2.frequency.setValueAtTime(freq * 1.003, now); // Leve coro analogico
+          osc2.frequency.setValueAtTime(freq * 1.003, now);
 
           gain.gain.setValueAtTime(0.001, now);
-          gain.gain.linearRampToValueAtTime(0.09, now + 2.0);
+          gain.gain.linearRampToValueAtTime(0.08, now + 2.0);
           gain.gain.linearRampToValueAtTime(0.001, now + 6.2);
 
           osc1.connect(gain);
@@ -539,30 +660,30 @@
       }, 5400);
     }
 
-    scheduleBells() {
+    scheduleChimes() {
       if (!this.isPlaying) return;
       const delayTime = 3000 + Math.random() * 4000;
       this.chimeTimer = setTimeout(() => {
         if (this.ctx && !this.isMuted && this.isPlaying) {
-          const note = this.bells[Math.floor(Math.random() * this.bells.length)];
+          const note = this.chimes[Math.floor(Math.random() * this.chimes.length)];
           const now = this.ctx.currentTime;
-          const bellOsc = this.ctx.createOscillator();
-          const bellGain = this.ctx.createGain();
+          const chimeOsc = this.ctx.createOscillator();
+          const chimeGain = this.ctx.createGain();
 
-          bellOsc.type = 'sine';
-          bellOsc.frequency.setValueAtTime(note, now);
+          chimeOsc.type = 'sine';
+          chimeOsc.frequency.setValueAtTime(note, now);
 
-          bellGain.gain.setValueAtTime(0.001, now);
-          bellGain.gain.linearRampToValueAtTime(0.035, now + 0.1);
-          bellGain.gain.linearRampToValueAtTime(0.001, now + 3.0);
+          chimeGain.gain.setValueAtTime(0.001, now);
+          chimeGain.gain.linearRampToValueAtTime(0.035, now + 0.1);
+          chimeGain.gain.linearRampToValueAtTime(0.001, now + 3.0);
 
-          bellOsc.connect(bellGain);
-          bellGain.connect(this.filter);
+          chimeOsc.connect(chimeGain);
+          chimeGain.connect(this.filter);
 
-          bellOsc.start(now);
-          bellOsc.stop(now + 3.2);
+          chimeOsc.start(now);
+          chimeOsc.stop(now + 3.2);
         }
-        this.scheduleBells();
+        this.scheduleChimes();
       }, delayTime);
     }
 
@@ -579,22 +700,16 @@
     }
   }
 
-  const audioEngine = new AtmosphericAudio();
+  const soundtrack = new FloralSoundtrack();
 
   // ========================================================
-  // 8. INTERACCIONES Y EVENTOS DE INTERFAZ
+  // 8. INTERACCIONES DE INTERFAZ
   // ========================================================
   function startExperience() {
-    // 1. Audio
-    audioEngine.start();
-
-    // 2. Transicion de pantalla
+    soundtrack.start();
     introScreen.classList.add('screen-hidden');
-
-    // 3. Iniciar revelacion cinemática en Canvas
     triggerReveal();
 
-    // 4. Mostrar controles con delay refinado
     setTimeout(() => {
       controlDock.classList.remove('dock-hidden');
       gestureHint.classList.remove('hint-hidden');
@@ -612,14 +727,12 @@
     }
   });
 
-  // Selector de Temas
   themeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
-    renderOffscreenArt(THEMES[currentThemeIndex]);
+    currentThemeIndex = (currentThemeIndex + 1) % FLORAL_THEMES.length;
+    renderOffscreenArt(FLORAL_THEMES[currentThemeIndex]);
   });
 
-  // Boton de Centrado
   resetBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     camera.targetScale = camera.fitScale;
@@ -627,10 +740,9 @@
     camera.targetY = viewportHeight / 2;
   });
 
-  // Boton de Audio
   audioBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const isNowPlaying = audioEngine.toggleMute();
+    const isNowPlaying = soundtrack.toggleMute();
     if (isNowPlaying) {
       iconAudioOn.classList.remove('hidden');
       iconAudioOff.classList.add('hidden');
@@ -640,7 +752,6 @@
     }
   });
 
-  // Redimensionado de pantalla y rotacion
   window.addEventListener('resize', () => {
     resizeStage();
     updateFitScale();
@@ -654,7 +765,7 @@
 
   // Inicializacion
   resizeStage();
-  renderOffscreenArt(THEMES[currentThemeIndex]);
+  renderOffscreenArt(FLORAL_THEMES[currentThemeIndex]);
   updateFitScale();
   requestAnimationFrame(loop);
 })();
