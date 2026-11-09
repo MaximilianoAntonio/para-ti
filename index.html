@@ -31,6 +31,12 @@
 
   <!-- Barra de controles flotante con estilo Glassmorphism -->
   <nav id="control-dock" class="dock-hidden" aria-label="Controles">
+    <button id="letter-btn" class="dock-btn" title="Leer dedicatoria" aria-label="Abrir carta o dedicatoria">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    </button>
     <button id="theme-btn" class="dock-btn" title="Cambiar paleta de colores" aria-label="Cambiar estilo de color">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="9"/>
@@ -54,6 +60,19 @@
       </svg>
     </button>
   </nav>
+
+  <!-- Fondo atenuado de la carta -->
+  <div id="sheet-backdrop" class="sheet-backdrop-hidden"></div>
+
+  <!-- Hoja desplegable inferior (Bottom-sheet) -->
+  <section id="letter-sheet" class="sheet-hidden" aria-modal="true" role="dialog" aria-label="Dedicatoria">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-content">
+      <span class="sheet-eyebrow">DEDICATORIA</span>
+      <p class="sheet-message">Para la persona que ilumina mis dias con sus mensajes</p>
+      <button id="close-sheet-btn" class="sheet-close-btn" aria-label="Cerrar dedicatoria">Volver a los tulipanes</button>
+    </div>
+  </section>
 
   <!-- Notificacion guia sutil -->
   <div id="gesture-hint" class="hint-hidden">

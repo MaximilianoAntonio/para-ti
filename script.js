@@ -20,6 +20,10 @@
   const iconAudioOn = document.getElementById('icon-audio-on');
   const iconAudioOff = document.getElementById('icon-audio-off');
   const gestureHint = document.getElementById('gesture-hint');
+  const letterBtn = document.getElementById('letter-btn');
+  const letterSheet = document.getElementById('letter-sheet');
+  const sheetBackdrop = document.getElementById('sheet-backdrop');
+  const closeSheetBtn = document.getElementById('close-sheet-btn');
 
   // Dimensiones del visor y soporte de Retina
   let viewportWidth = window.innerWidth;
@@ -384,6 +388,48 @@
 
   const petals = [];
   const stars = [];
+  const sparkles = [];
+
+  class SparkleParticle {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.vx = (Math.random() - 0.5) * 1.8;
+      this.vy = (Math.random() - 0.5) * 1.8 - 0.4;
+      this.size = 1.0 + Math.random() * 2.2;
+      this.alpha = 1.0;
+      this.decay = 0.024 + Math.random() * 0.028;
+      this.color = Math.random() > 0.45 ? '#ffd54f' : '#ff2a4b';
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.alpha -= this.decay;
+    }
+
+    draw(targetCtx) {
+      if (this.alpha <= 0) return;
+      targetCtx.save();
+      targetCtx.beginPath();
+      targetCtx.arc(this.x * dpr, this.y * dpr, this.size * dpr, 0, Math.PI * 2);
+      targetCtx.fillStyle = this.color;
+      targetCtx.globalAlpha = Math.max(0, this.alpha);
+      targetCtx.shadowBlur = 12 * dpr;
+      targetCtx.shadowColor = this.color;
+      targetCtx.fill();
+      targetCtx.restore();
+    }
+  }
+
+  function spawnSparkles(x, y, count = 2) {
+    for (let i = 0; i < count; i++) {
+      if (sparkles.length < 80) {
+        sparkles.push(new SparkleParticle(x, y));
+      }
+    }
+  }
+
   for (let i = 0; i < 22; i++) petals.push(new FloatingPetal());
   for (let i = 0; i < 28; i++) stars.push(new StardustParticle());
 
@@ -548,6 +594,15 @@
       petals[i].update();
       petals[i].draw(ctx);
     }
+    // 1.5. Estela de chispas interactivas al tacto
+    for (let i = sparkles.length - 1; i >= 0; i--) {
+      sparkles[i].update();
+      if (sparkles[i].alpha <= 0) {
+        sparkles.splice(i, 1);
+      } else {
+        sparkles[i].draw(ctx);
+      }
+    }
 
     // 2. Renderizado de los tulipanes en Canvas
     if (isRevealed && stemsCanvas) {
@@ -609,6 +664,7 @@
       isDragging = true;
       lastX = e.touches[0].clientX;
       lastY = e.touches[0].clientY;
+      spawnSparkles(lastX, lastY, 4);
     } else if (e.touches.length === 2) {
       isDragging = false;
       touchStartDist = getDistance(e.touches[0], e.touches[1]);
@@ -623,6 +679,7 @@
       camera.targetX += dx;
       camera.targetY += dy;
       windVelocity += dx * 0.14; // Brisa al deslizar
+      spawnSparkles(e.touches[0].clientX, e.touches[0].clientY, 2);
       lastX = e.touches[0].clientX;
       lastY = e.touches[0].clientY;
     } else if (e.touches.length === 2 && touchStartDist > 0) {
@@ -647,6 +704,7 @@
     isDragging = true;
     lastX = e.clientX;
     lastY = e.clientY;
+    spawnSparkles(e.clientX, e.clientY, 4);
   });
 
   window.addEventListener('mousemove', (e) => {
@@ -656,6 +714,7 @@
     camera.targetX += dx;
     camera.targetY += dy;
     windVelocity += dx * 0.14;
+    spawnSparkles(e.clientX, e.clientY, 2);
     lastX = e.clientX;
     lastY = e.clientY;
   });
@@ -839,6 +898,69 @@
   introScreen.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       startExperience();
+    }
+  });
+
+  // ========================================================
+  // 10. CONTROLADOR DE LA CARTA DEDICATORIA (BOTTOM-SHEET)
+  // Despliegue nativo y gesto de deslizar hacia abajo
+  // ========================================================
+  function openLetterSheet() {
+    sheetBackdrop.classList.remove('sheet-backdrop-hidden');
+    letterSheet.classList.remove('sheet-hidden');
+    letterSheet.style.transform = '';
+  }
+
+  function closeLetterSheet() {
+    sheetBackdrop.classList.add('sheet-backdrop-hidden');
+    letterSheet.classList.add('sheet-hidden');
+    letterSheet.style.transform = '';
+  }
+
+  letterBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openLetterSheet();
+  });
+
+  closeSheetBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeLetterSheet();
+  });
+
+  sheetBackdrop.addEventListener('click', () => {
+    closeLetterSheet();
+  });
+
+  // Gesto tactil de arrastre hacia abajo para cerrar la carta (drag-to-dismiss)
+  let sheetStartY = 0;
+  let isDraggingSheet = false;
+
+  letterSheet.addEventListener('touchstart', (e) => {
+    sheetStartY = e.touches[0].clientY;
+    isDraggingSheet = true;
+    letterSheet.style.transition = 'none';
+  }, { passive: true });
+
+  letterSheet.addEventListener('touchmove', (e) => {
+    if (!isDraggingSheet) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - sheetStartY;
+    if (deltaY > 0) {
+      letterSheet.style.transform = `translateY(${deltaY}px)`;
+    }
+  }, { passive: true });
+
+  letterSheet.addEventListener('touchend', (e) => {
+    if (!isDraggingSheet) return;
+    isDraggingSheet = false;
+    letterSheet.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+    const touchY = e.changedTouches[0].clientY;
+    const deltaY = touchY - sheetStartY;
+
+    if (deltaY > 75) {
+      closeLetterSheet();
+    } else {
+      letterSheet.style.transform = 'translateY(0)';
     }
   });
 
