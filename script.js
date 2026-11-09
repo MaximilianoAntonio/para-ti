@@ -36,30 +36,21 @@
   }
 
   // ========================================================
-  // 1. PALETAS FLORALES MULTICOLOR (DISENO NATURAL Y RICO)
-  // Cada parte (petalos, tallos, hojas, base y cielo) tiene su color
+  // 1. PALETAS FLORALES CON TULIPANES ROJOS Y TALLOS VERDES
+  // Los tulipanes son de color rojo vivo con tallos esmeralda
   // ========================================================
   const FLORAL_THEMES = [
     {
-      id: 'vibrant-garden',
-      name: 'Jardin de Tulipanes',
-      // Flor derecha: Rosa Rubi y Carmesi Fucsia
-      flowerRight: {
+      id: 'red-passion',
+      name: 'Tulipanes Rojos Pasion',
+      // Flores: Rojo Carmesi y Rubi Vibrante
+      flower: {
         dense: '#ffffff',
-        body: '#ff0055',
-        highlight: '#ff6699',
-        shadow: '#c2185b',
-        glow: '#ff0066',
-        shadowGlow: '#ad1457'
-      },
-      // Flor izquierda: Coral Fuego y Oro Melocoton
-      flowerLeft: {
-        dense: '#ffffff',
-        body: '#ff3d00',
-        highlight: '#ff9100',
-        shadow: '#d84315',
-        glow: '#ff5722',
-        shadowGlow: '#bf360c'
+        body: '#ff0033',
+        highlight: '#ff2a4b',
+        shadow: '#99001b',
+        glow: '#ff0033',
+        shadowGlow: '#cc0029'
       },
       // Tallos y follaje: Verde Esmeralda y Menta Lima
       stem: {
@@ -77,72 +68,22 @@
         shadow: '#ff8f00',
         glow: '#ffa000'
       },
-      // Cuadricula cosmica tenue de fondo
       bgGrid: 'rgba(120, 160, 255, 0.12)',
-      particleColors: ['#ff0055', '#ff9100', '#00ff88', '#76ff03']
+      particleColors: ['#ff0033', '#ff2a4b', '#00ff88', '#76ff03']
     },
     {
-      id: 'violet-romance',
-      name: 'Tulipanes Violeta y Magenta',
-      // Flor derecha: Amatista y Purpura Real
-      flowerRight: {
-        dense: '#ffffff',
-        body: '#d500f9',
-        highlight: '#ea80fc',
-        shadow: '#8e24aa',
-        glow: '#d500f9',
-        shadowGlow: '#6a1b9a'
-      },
-      // Flor izquierda: Rosa Chicle y Rubí
-      flowerLeft: {
-        dense: '#ffffff',
-        body: '#ff1493',
-        highlight: '#ff80ab',
-        shadow: '#c2185b',
-        glow: '#ff4081',
-        shadowGlow: '#880e4f'
-      },
-      // Tallos y hojas: Verde Turquesa y Menta
-      stem: {
-        dense: '#ffffff',
-        body: '#1de9b6',
-        highlight: '#64ffda',
-        shadow: '#00897b',
-        glow: '#1de9b6',
-        shadowGlow: '#004d40'
-      },
-      // Suelo / Base
-      base: {
-        dense: '#ba68c8',
-        highlight: '#ab47bc',
-        shadow: '#6a1b9a',
-        glow: '#8e24aa'
-      },
-      bgGrid: 'rgba(180, 130, 255, 0.13)',
-      particleColors: ['#d500f9', '#ff4081', '#1de9b6', '#ea80fc']
-    },
-    {
-      id: 'golden-sunset',
-      name: 'Tulipanes Dorados y Escarlata',
-      // Flor derecha: Oro Solar y Ambar
-      flowerRight: {
-        dense: '#ffffff',
-        body: '#ffab00',
-        highlight: '#ffe082',
-        shadow: '#ff6f00',
-        glow: '#ffa000',
-        shadowGlow: '#e65100'
-      },
-      // Flor izquierda: Escarlata y Fuego
-      flowerLeft: {
+      id: 'red-ruby',
+      name: 'Tulipanes Rojo Rubi y Oro',
+      // Flores: Rojo Escarlata brillante con reflejos calidos
+      flower: {
         dense: '#ffffff',
         body: '#ff1744',
         highlight: '#ff5252',
         shadow: '#b71c1c',
         glow: '#ff1744',
-        shadowGlow: '#7f0000'
+        shadowGlow: '#8b0000'
       },
-      // Tallos y hojas: Verde Primavera Vibrante
+      // Tallos: Verde Lima Brillante
       stem: {
         dense: '#ffffff',
         body: '#64dd17',
@@ -151,7 +92,6 @@
         glow: '#76ff03',
         shadowGlow: '#1b5e20'
       },
-      // Suelo / Base
       base: {
         dense: '#ffb74d',
         highlight: '#ffa726',
@@ -159,7 +99,37 @@
         glow: '#ff9800'
       },
       bgGrid: 'rgba(255, 210, 120, 0.13)',
-      particleColors: ['#ffab00', '#ff1744', '#76ff03', '#ffd54f']
+      particleColors: ['#ff1744', '#ff5252', '#76ff03', '#ffd54f']
+    },
+    {
+      id: 'red-velvet',
+      name: 'Tulipanes Rojo Terciopelo',
+      // Flores: Rojo Granate y Carmesi Oscuro
+      flower: {
+        dense: '#ffffff',
+        body: '#d50000',
+        highlight: '#ff3344',
+        shadow: '#7f0000',
+        glow: '#ff0022',
+        shadowGlow: '#590000'
+      },
+      // Tallos: Verde Turquesa y Jade
+      stem: {
+        dense: '#ffffff',
+        body: '#1de9b6',
+        highlight: '#64ffda',
+        shadow: '#00897b',
+        glow: '#1de9b6',
+        shadowGlow: '#004d40'
+      },
+      base: {
+        dense: '#ffd54f',
+        highlight: '#ffb300',
+        shadow: '#ff8f00',
+        glow: '#ffa000'
+      },
+      bgGrid: 'rgba(160, 140, 255, 0.12)',
+      particleColors: ['#d50000', '#ff3344', '#1de9b6', '#64ffda']
     }
   ];
 
@@ -167,7 +137,7 @@
 
   // ========================================================
   // 2. GENERADOR DE TEXTURA OFFSCREEN
-  // Mapeo anatomico de tulipanes y renderizado sin sobrecosto
+  // Mapeo anatomico exacto de los 3 tulipanes rojos y tallos
   // ========================================================
   let offscreenCanvas = null;
   let artCols = 119;
@@ -182,65 +152,73 @@
     artCols = Math.max(...rawLines.map(l => l.length));
   }
 
-  // Identificador anatomico de la celda de tulipan
+  // Deteccion de petalos de los 3 tulipanes
+  function isTulipFlower(lineNum, c) {
+    // 1. Tulipan izquierdo: lineas 29 a 54, cols 24 a 66
+    if (lineNum >= 29 && lineNum <= 54 && c >= 24 && c <= 66) {
+      return true;
+    }
+    // 2. Tulipan superior derecho: lineas 14 a 38, cols 74 a 113
+    if (lineNum >= 14 && lineNum <= 38 && c >= 74 && c <= 113) {
+      return true;
+    }
+    // 3. Tulipan inferior derecho: lineas 39 a 60
+    if (lineNum >= 39 && lineNum <= 60) {
+      if (lineNum === 39 && c >= 98) return true;
+      if (lineNum === 40 && c >= 97) return true;
+      if (lineNum === 41 && c >= 96) return true;
+      if (lineNum === 42 && c >= 95) return true;
+      if (lineNum === 43 && c >= 94) return true;
+      if (lineNum === 44 && c >= 93) return true;
+      if (lineNum === 45 && c >= 92) return true;
+      if (lineNum >= 46 && lineNum <= 56 && c >= 88) return true;
+      if (lineNum >= 57 && lineNum <= 58 && c >= 90) return true;
+      if (lineNum === 59 && c >= 92) return true;
+      if (lineNum === 60 && c >= 95) return true;
+    }
+    return false;
+  }
+
+  // Identificador anatomico de cada caracter
   function getCellStyle(r, c, char, theme) {
     if (char === ':' || char === ' ') {
       return { fill: theme.bgGrid, glow: null, blur: 0, isBg: true };
     }
 
-    // 1. Base / Suelo (Ultimas 4 lineas)
-    if (r >= 111) {
+    const lineNum = r + 1;
+
+    // 1. Base / Suelo (lineas 112 a 115)
+    if (lineNum >= 112) {
       if (char === '@' || char === '%' || char === '#') {
         return { fill: theme.base.dense, glow: theme.base.glow, blur: 12 };
       }
       return { fill: theme.base.highlight, glow: theme.base.glow, blur: 6 };
     }
 
-    // 2. Anatomia floral:
-    // Hoja arqueada grande de la izquierda (filas 56 a 67, columnas <= 68)
-    const isLeftLeaf = (r >= 56 && r <= 67 && c <= 68);
-    // Tallos principales y follaje inferior (fila 56 en adelante)
-    const isLowerStem = (r >= 56);
-    // Caliz / transicion al tallo
-    const isCalyx = (r >= 52 && r <= 55 && c >= 48 && c <= 76);
-
-    if (isLeftLeaf || isLowerStem || isCalyx) {
-      // Tallos y hojas VERDES
+    // 2. Petalos de los tulipanes (TODOS ROJOS)
+    if (isTulipFlower(lineNum, c)) {
+      const fl = theme.flower;
       if (char === '@' || char === '%' || char === '#') {
-        return { fill: theme.stem.dense, bodyColor: theme.stem.body, glow: theme.stem.glow, blur: 12, isStem: true };
-      } else if (char === '*' || char === '+') {
-        return { fill: theme.stem.highlight, glow: theme.stem.glow, blur: 8 };
-      } else {
-        return { fill: theme.stem.shadow, glow: theme.stem.shadowGlow, blur: 4 };
-      }
-    }
-
-    // 3. Flor derecha (Tulipan principal)
-    if (r <= 55 && c >= 70) {
-      const fl = theme.flowerRight;
-      if (char === '@' || char === '%' || char === '#') {
+        // Cuerpo denso de los petalos con nucleo blanco brillante
         return { fill: fl.dense, bodyColor: fl.body, glow: fl.glow, blur: 14, isPetal: true };
       } else if (char === '*' || char === '+') {
+        // Reflejos e iluminaciones rojas de los petalos
         return { fill: fl.highlight, glow: fl.glow, blur: 9 };
       } else {
+        // Sombras y pliegues internos de los petalos en rojo vino aterciopelado
         return { fill: fl.shadow, glow: fl.shadowGlow, blur: 5 };
       }
     }
 
-    // 4. Flor izquierda (Tulipan secundario)
-    if (r <= 55 && c < 70) {
-      const fl = theme.flowerLeft;
-      if (char === '@' || char === '%' || char === '#') {
-        return { fill: fl.dense, bodyColor: fl.body, glow: fl.glow, blur: 14, isPetal: true };
-      } else if (char === '*' || char === '+') {
-        return { fill: fl.highlight, glow: fl.glow, blur: 9 };
-      } else {
-        return { fill: fl.shadow, glow: fl.shadowGlow, blur: 5 };
-      }
+    // 3. Tallos y hojas (TODOS VERDES)
+    const st = theme.stem;
+    if (char === '@' || char === '%' || char === '#') {
+      return { fill: st.dense, bodyColor: st.body, glow: st.glow, blur: 12, isStem: true };
+    } else if (char === '*' || char === '+') {
+      return { fill: st.highlight, glow: st.glow, blur: 8 };
+    } else {
+      return { fill: st.shadow, glow: st.shadowGlow, blur: 4 };
     }
-
-    // Por defecto: Tallo verde
-    return { fill: theme.stem.highlight, glow: theme.stem.glow, blur: 6 };
   }
 
   function renderOffscreenArt(theme) {
