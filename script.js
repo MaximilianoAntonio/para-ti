@@ -1,90 +1,487 @@
 /**
  * ========================================================
- * ARTE ASCII GLOW - MOTOR INTERACTIVO Y MÚSICA PROCEDURAL
- * Optimizado para dispositivos móviles y GitHub Pages
+ * MOTOR DE RENDERIZADO EN CANVAS Y EXPERIENCIA INMERSIVA
+ * Arte ASCII Glow de alta fidelidad para dispositivos moviles
  * ========================================================
  */
 
 (function () {
   'use strict';
 
-  // Elementos DOM
+  // Elementos del DOM
+  const mainStage = document.getElementById('main-stage');
+  const ctx = mainStage.getContext('2d');
   const introScreen = document.getElementById('intro-screen');
-  const openBtn = document.getElementById('open-btn');
-  const viewport = document.getElementById('viewport');
-  const artContainer = document.getElementById('art-container');
-  const asciiArt = document.getElementById('ascii-art');
-  const controls = document.getElementById('controls');
+  const openTrigger = document.getElementById('open-trigger');
+  const controlDock = document.getElementById('control-dock');
+  const themeBtn = document.getElementById('theme-btn');
   const resetBtn = document.getElementById('reset-btn');
   const audioBtn = document.getElementById('audio-btn');
-  const iconSoundOn = document.getElementById('icon-sound-on');
-  const iconSoundOff = document.getElementById('icon-sound-off');
-  const hintToast = document.getElementById('hint-toast');
-  const canvas = document.getElementById('particles-canvas');
-  const ctx = canvas.getContext('2d');
+  const iconAudioOn = document.getElementById('icon-audio-on');
+  const iconAudioOff = document.getElementById('icon-audio-off');
+  const gestureHint = document.getElementById('gesture-hint');
 
-  // Carga del arte desde art.js
-  if (window.RAW_ASCII_ART) {
-    asciiArt.textContent = window.RAW_ASCII_ART;
+  // Dimensiones del lienzo
+  let viewportWidth = window.innerWidth;
+  let viewportHeight = window.innerHeight;
+  let dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+
+  function resizeStage() {
+    viewportWidth = window.innerWidth;
+    viewportHeight = window.innerHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    mainStage.width = viewportWidth * dpr;
+    mainStage.height = viewportHeight * dpr;
+    mainStage.style.width = viewportWidth + 'px';
+    mainStage.style.height = viewportHeight + 'px';
   }
 
   // ========================================================
-  // 1. MOTOR DE AUDIO PROCEDURAL (Web Audio API)
-  // Romántico, atmosférico y 100% sintetizado en tiempo real
+  // 1. PALETAS DE COLOR PROFESIONALES
   // ========================================================
-  class AmbientSoundtrack {
+  const THEMES = [
+    {
+      id: 'neon-romance',
+      name: 'Rosa y Violeta Neon',
+      core: '#ffffff',
+      highGlow: '#ff1475',
+      highText: '#ffffff',
+      midGlow: '#c752ff',
+      midText: '#ff7bb5',
+      lowGlow: '#7b1fa2',
+      lowText: '#af40e8',
+      bgGrid: 'rgba(180, 100, 240, 0.16)',
+      particle1: '#ff2a85',
+      particle2: '#c752ff'
+    },
+    {
+      id: 'golden-sunset',
+      name: 'Luz Dorada',
+      core: '#ffffff',
+      highGlow: '#ff9900',
+      highText: '#ffffff',
+      midGlow: '#ffaa00',
+      midText: '#ffe082',
+      lowGlow: '#e65100',
+      lowText: '#ffb74d',
+      bgGrid: 'rgba(255, 183, 77, 0.15)',
+      particle1: '#f5b342',
+      particle2: '#ff8800'
+    },
+    {
+      id: 'celestial-night',
+      name: 'Cielo Nocturno',
+      core: '#ffffff',
+      highGlow: '#00e5ff',
+      highText: '#ffffff',
+      midGlow: '#0091ea',
+      midText: '#80d8ff',
+      lowGlow: '#01579b',
+      lowText: '#40c4ff',
+      bgGrid: 'rgba(64, 196, 255, 0.15)',
+      particle1: '#00e5ff',
+      particle2: '#7c4dff'
+    }
+  ];
+
+  let currentThemeIndex = 0;
+
+  // ========================================================
+  // 2. GENERADOR DE TEXTURA OFFSCREEN (ALTA FIDELIDAD)
+  // Pre-renderizado ultra eficiente del arte ASCII
+  // ========================================================
+  let offscreenCanvas = null;
+  let artCols = 119;
+  let artRows = 116;
+  const CELL_WIDTH = 9;
+  const CELL_HEIGHT = 14;
+  let rawLines = [];
+
+  if (window.RAW_ASCII_ART) {
+    rawLines = window.RAW_ASCII_ART.split('\n');
+    artRows = rawLines.length;
+    artCols = Math.max(...rawLines.map(l => l.length));
+  }
+
+  function renderOffscreenArt(theme) {
+    const texW = artCols * CELL_WIDTH;
+    const texH = artRows * CELL_HEIGHT;
+
+    if (!offscreenCanvas) {
+      offscreenCanvas = document.createElement('canvas');
+    }
+    offscreenCanvas.width = texW * 2;
+    offscreenCanvas.height = texH * 2;
+
+    const octx = offscreenCanvas.getContext('2d');
+    octx.scale(2, 2);
+    octx.clearRect(0, 0, texW, texH);
+
+    octx.font = '700 11px "JetBrains Mono", "Fira Code", monospace';
+    octx.textBaseline = 'top';
+    octx.textAlign = 'left';
+
+    // Clasificacion de caracteres para profundidad optica
+    for (let r = 0; r < rawLines.length; r++) {
+      const line = rawLines[r];
+      const y = r * CELL_HEIGHT;
+
+      for (let c = 0; c < line.length; c++) {
+        const char = line[c];
+        if (char === ' ') continue;
+
+        const x = c * CELL_WIDTH;
+
+        if (char === ':') {
+          // Fondo etereo de baja intensidad (no compite con las siluetas)
+          octx.fillStyle = theme.bgGrid;
+          octx.shadowBlur = 0;
+          octx.fillText(char, x, y);
+        } else if (char === '@' || char === '%' || char === '#') {
+          // Contornos principales y rostros: brillo de neón intenso con núcleo blanco
+          octx.shadowColor = theme.highGlow;
+          octx.shadowBlur = 12;
+          octx.fillStyle = theme.highText;
+          octx.fillText(char, x, y);
+
+          // Refuerzo del nucleo
+          octx.shadowBlur = 4;
+          octx.fillText(char, x, y);
+        } else if (char === '*' || char === '+') {
+          // Tonos medios e iluminacion secundaria
+          octx.shadowColor = theme.midGlow;
+          octx.shadowBlur = 8;
+          octx.fillStyle = theme.midText;
+          octx.fillText(char, x, y);
+        } else {
+          // Gradientes de sombra (=, -)
+          octx.shadowColor = theme.lowGlow;
+          octx.shadowBlur = 4;
+          octx.fillStyle = theme.lowText;
+          octx.fillText(char, x, y);
+        }
+      }
+    }
+  }
+
+  // ========================================================
+  // 3. MOTOR DE PARTICULAS AMBIENTALES
+  // ========================================================
+  class AmbientParticle {
+    constructor() {
+      this.reset(true);
+    }
+
+    reset(initial = false) {
+      this.x = Math.random() * viewportWidth;
+      this.y = initial ? Math.random() * viewportHeight : viewportHeight + 15;
+      this.radius = 0.8 + Math.random() * 2.2;
+      this.speedY = -(0.2 + Math.random() * 0.45);
+      this.speedX = (Math.random() - 0.5) * 0.3;
+      this.baseAlpha = 0.15 + Math.random() * 0.5;
+      this.alpha = this.baseAlpha;
+      this.pulseRate = 0.02 + Math.random() * 0.03;
+      this.pulsePhase = Math.random() * Math.PI * 2;
+    }
+
+    update() {
+      this.y += this.speedY;
+      this.x += this.speedX;
+      this.pulsePhase += this.pulseRate;
+      this.alpha = this.baseAlpha + Math.sin(this.pulsePhase) * 0.15;
+
+      if (this.y < -15 || this.x < -15 || this.x > viewportWidth + 15) {
+        this.reset(false);
+      }
+    }
+
+    draw(targetCtx, color) {
+      targetCtx.save();
+      targetCtx.beginPath();
+      targetCtx.arc(this.x * dpr, this.y * dpr, this.radius * dpr, 0, Math.PI * 2);
+      targetCtx.fillStyle = color;
+      targetCtx.globalAlpha = Math.max(0, Math.min(1, this.alpha));
+      targetCtx.shadowBlur = 10 * dpr;
+      targetCtx.shadowColor = color;
+      targetCtx.fill();
+      targetCtx.restore();
+    }
+  }
+
+  const particles = [];
+  for (let i = 0; i < 40; i++) {
+    particles.push(new AmbientParticle());
+  }
+
+  // ========================================================
+  // 4. MOTOR DE CAMARA, GESTOS Y FISICA SUAVE
+  // ========================================================
+  const camera = {
+    x: 0,
+    y: 0,
+    scale: 1,
+    targetX: 0,
+    targetY: 0,
+    targetScale: 1,
+    fitScale: 1,
+    artW: 0,
+    artH: 0
+  };
+
+  function updateFitScale() {
+    camera.artW = artCols * CELL_WIDTH;
+    camera.artH = artRows * CELL_HEIGHT;
+
+    const marginX = viewportWidth * 0.92;
+    const marginY = viewportHeight * 0.82;
+
+    const scaleX = marginX / camera.artW;
+    const scaleY = marginY / camera.artH;
+
+    camera.fitScale = Math.min(scaleX, scaleY);
+    camera.targetScale = camera.fitScale;
+    camera.targetX = viewportWidth / 2;
+    camera.targetY = viewportHeight / 2;
+
+    camera.scale = camera.targetScale;
+    camera.x = camera.targetX;
+    camera.y = camera.targetY;
+  }
+
+  // Animacion de encendido y revelacion cinematografica
+  let isRevealed = false;
+  let revealProgress = 0; // De 0 a 1
+  let revealStartTime = 0;
+
+  function triggerReveal() {
+    isRevealed = true;
+    revealStartTime = performance.now();
+  }
+
+  // ========================================================
+  // 5. BUCLE PRINCIPAL DE RENDERIZADO (60/120 FPS)
+  // ========================================================
+  function loop(now) {
+    // Interpolacion de camara suave (lerp)
+    camera.x += (camera.targetX - camera.x) * 0.18;
+    camera.y += (camera.targetY - camera.y) * 0.18;
+    camera.scale += (camera.targetScale - camera.scale) * 0.18;
+
+    // Actualizacion de animacion de revelacion
+    if (isRevealed && revealProgress < 1) {
+      const elapsed = (now - revealStartTime) / 2000; // 2 segundos
+      revealProgress = Math.min(1, elapsed);
+    }
+
+    ctx.clearRect(0, 0, mainStage.width, mainStage.height);
+
+    const theme = THEMES[currentThemeIndex];
+
+    // 1. Dibujar particulas de fondo
+    for (let i = 0; i < particles.length; i++) {
+      particles[i].update();
+      particles[i].draw(ctx, i % 2 === 0 ? theme.particle1 : theme.particle2);
+    }
+
+    // 2. Dibujar arte ASCII si ya inicio la revelacion
+    if (isRevealed && offscreenCanvas) {
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.translate(camera.x, camera.y);
+      ctx.scale(camera.scale, camera.scale);
+
+      // Centrado respecto al origen del arte
+      const drawX = -camera.artW / 2;
+      const drawY = -camera.artH / 2;
+
+      // Efecto de respiracion sutil de neon
+      const breathingGlow = 0.85 + Math.sin(now * 0.002) * 0.15;
+
+      // Capa de Bloom Optico (Lighter blend)
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = 0.45 * breathingGlow;
+      ctx.drawImage(offscreenCanvas, drawX, drawY, camera.artW, camera.artH);
+      ctx.restore();
+
+      // Capa Nitida Primaria
+      ctx.save();
+      if (revealProgress < 1) {
+        // Barrido vertical de encendido de neón
+        const clipHeight = camera.artH * revealProgress;
+        ctx.beginPath();
+        ctx.rect(drawX, drawY, camera.artW, clipHeight);
+        ctx.clip();
+      }
+      ctx.globalAlpha = 1.0;
+      ctx.drawImage(offscreenCanvas, drawX, drawY, camera.artW, camera.artH);
+
+      // Linea de barrido luminoso mientras se revela
+      if (revealProgress > 0 && revealProgress < 1) {
+        const scanY = drawY + camera.artH * revealProgress;
+        const scanGrad = ctx.createLinearGradient(drawX, scanY - 15, drawX, scanY + 15);
+        scanGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+        scanGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.9)');
+        scanGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = scanGrad;
+        ctx.fillRect(drawX, scanY - 15, camera.artW, 30);
+      }
+      ctx.restore();
+
+      ctx.restore();
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  // ========================================================
+  // 6. GESTOS TACTILES Y RATON (NIVEL NATIVO FLUIDO)
+  // ========================================================
+  let touchStartDist = 0;
+  let touchStartScale = 1;
+  let isDragging = false;
+  let lastX = 0;
+  let lastY = 0;
+  let lastTapTime = 0;
+
+  function getDistance(t1, t2) {
+    return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+  }
+
+  function getMidpoint(t1, t2) {
+    return {
+      x: (t1.clientX + t2.clientX) / 2,
+      y: (t1.clientY + t2.clientY) / 2
+    };
+  }
+
+  mainStage.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      const now = performance.now();
+      if (now - lastTapTime < 300) {
+        // Doble toque: restablecer a pantalla completa
+        camera.targetScale = camera.fitScale;
+        camera.targetX = viewportWidth / 2;
+        camera.targetY = viewportHeight / 2;
+        lastTapTime = 0;
+        return;
+      }
+      lastTapTime = now;
+
+      isDragging = true;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+      isDragging = false;
+      touchStartDist = getDistance(e.touches[0], e.touches[1]);
+      touchStartScale = camera.targetScale;
+    }
+  }, { passive: true });
+
+  mainStage.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 1 && isDragging) {
+      const dx = e.touches[0].clientX - lastX;
+      const dy = e.touches[0].clientY - lastY;
+      camera.targetX += dx;
+      camera.targetY += dy;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+    } else if (e.touches.length === 2 && touchStartDist > 0) {
+      const currentDist = getDistance(e.touches[0], e.touches[1]);
+      const factor = currentDist / touchStartDist;
+      const newScale = Math.min(Math.max(touchStartScale * factor, camera.fitScale * 0.6), camera.fitScale * 5.0);
+      camera.targetScale = newScale;
+    }
+  }, { passive: true });
+
+  mainStage.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) {
+      isDragging = false;
+    } else if (e.touches.length === 1) {
+      isDragging = true;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+    }
+  });
+
+  // Soporte para Raton (Desktop)
+  mainStage.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    camera.targetX += dx;
+    camera.targetY += dy;
+    lastX = e.clientX;
+    lastY = e.clientY;
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
+
+  mainStage.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomDelta = e.deltaY < 0 ? 1.15 : 0.85;
+    camera.targetScale = Math.min(Math.max(camera.targetScale * zoomDelta, camera.fitScale * 0.6), camera.fitScale * 5.0);
+  }, { passive: false });
+
+  // ========================================================
+  // 7. SINTETIZADOR DE AUDIO PROCEDURAL (SEGURO Y ROBUSTO)
+  // Genera acordes aterciopelados y chimes sin fallos en movil
+  // ========================================================
+  class AtmosphericAudio {
     constructor() {
       this.ctx = null;
-      this.masterGain = null;
+      this.master = null;
+      this.filter = null;
       this.isPlaying = false;
       this.isMuted = false;
-      this.timer = null;
+      this.chordStep = 0;
+      this.loopTimer = null;
       this.chimeTimer = null;
 
-      // Progresión de acordes románticos (frecuencias en Hz)
-      // D♭maj7 -> B♭m7 -> G♭maj9 -> A♭sus4
-      this.chordProgressions = [
-        [138.59, 174.61, 207.65, 261.63, 349.23], // Db3, F3, Ab3, C4, F4
-        [116.54, 174.61, 207.65, 277.18, 349.23], // Bb2, F3, Ab3, Db4, F4
-        [92.50, 138.59, 174.61, 233.08, 277.18],  // Gb2, Db3, F3, Bb3, Db4
-        [103.83, 155.56, 207.65, 233.08, 311.13]  // Ab2, Eb3, Ab3, Bb3, Eb4
+      // Acordes mayores y septimas romanticas (Hz)
+      this.progression = [
+        [138.59, 207.65, 261.63, 349.23], // Db major
+        [116.54, 174.61, 233.08, 277.18], // Bb minor 7
+        [92.50, 138.59, 185.00, 233.08],  // Gb major 9
+        [103.83, 155.56, 207.65, 261.63]  // Ab add9
       ];
-      this.currentChordIdx = 0;
 
-      // Notas brillantes pentatónicas para destellos celestiales (chimes)
-      this.celestialNotes = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+      this.bells = [523.25, 659.25, 783.99, 1046.50, 1174.66];
     }
 
     init() {
       if (this.ctx) return;
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      this.ctx = new AudioContextClass();
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioCtx();
 
-      // Master Gain
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.setValueAtTime(0.001, this.ctx.currentTime);
+      this.master = this.ctx.createGain();
+      this.master.gain.setValueAtTime(0.001, this.ctx.currentTime);
 
-      // Filtro pasa-bajos cálido para sonido aterciopelado
       this.filter = this.ctx.createBiquadFilter();
       this.filter.type = 'lowpass';
-      this.filter.frequency.setValueAtTime(950, this.ctx.currentTime);
-      this.filter.Q.setValueAtTime(1.2, this.ctx.currentTime);
+      this.filter.frequency.setValueAtTime(800, this.ctx.currentTime);
+      this.filter.Q.setValueAtTime(1.5, this.ctx.currentTime);
 
-      // Efecto Delay ambiental (eco suave)
+      // Stereo delay ambiental
       this.delay = this.ctx.createDelay();
-      this.delay.delayTime.setValueAtTime(0.5, this.ctx.currentTime);
-
+      this.delay.delayTime.setValueAtTime(0.48, this.ctx.currentTime);
       this.delayFeedback = this.ctx.createGain();
-      this.delayFeedback.gain.setValueAtTime(0.35, this.ctx.currentTime);
+      this.delayFeedback.gain.setValueAtTime(0.3, this.ctx.currentTime);
 
-      // Enrutamiento de efectos
-      this.filter.connect(this.masterGain);
+      this.filter.connect(this.master);
       this.filter.connect(this.delay);
       this.delay.connect(this.delayFeedback);
       this.delayFeedback.connect(this.delay);
-      this.delay.connect(this.masterGain);
-
-      this.masterGain.connect(this.ctx.destination);
+      this.delay.connect(this.master);
+      this.master.connect(this.ctx.destination);
     }
 
     start() {
@@ -94,393 +491,170 @@
       }
 
       this.isPlaying = true;
-      // Fade in maestro
-      this.masterGain.gain.linearRampToValueAtTime(0.28, this.ctx.currentTime + 3.0);
+      const t = this.ctx.currentTime;
+      this.master.gain.cancelScheduledValues(t);
+      this.master.gain.linearRampToValueAtTime(0.24, t + 3.0);
 
-      this.playNextChord();
-      this.scheduleCelestialChimes();
+      this.playChord();
+      this.scheduleBells();
     }
 
-    playVoice(freq, duration = 6.0) {
-      if (!this.ctx || this.isMuted) return;
+    playChord() {
+      if (!this.isPlaying || !this.ctx || this.isMuted) return;
 
-      const now = this.ctx.currentTime;
-      const osc1 = this.ctx.createOscillator();
-      const osc2 = this.ctx.createOscillator();
-      const voiceGain = this.ctx.createGain();
+      const chord = this.progression[this.chordStep];
+      this.chordStep = (this.chordStep + 1) % this.progression.length;
 
-      // Oscilador 1: Onda sinusoidal pura
-      osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(freq, now);
-
-      // Oscilador 2: Triángulo con leve desafinación para sensación de coro cálido
-      osc2.type = 'triangle';
-      osc2.frequency.setValueAtTime(freq * 1.002, now);
-
-      // Envolvente suave (ADSR)
-      voiceGain.gain.setValueAtTime(0.0001, now);
-      voiceGain.gain.exponentialRampToValueAtTime(0.12, now + 2.2);
-      voiceGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-      osc1.connect(voiceGain);
-      osc2.connect(voiceGain);
-      voiceGain.connect(this.filter);
-
-      osc1.start(now);
-      osc2.start(now);
-      osc1.stop(now + duration + 0.2);
-      osc2.stop(now + duration + 0.2);
-    }
-
-    playNextChord() {
-      if (!this.isPlaying) return;
-
-      const chord = this.chordProgressions[this.currentChordIdx];
-      this.currentChordIdx = (this.currentChordIdx + 1) % this.chordProgressions.length;
-
-      // Tocar cada nota del acorde con ligeros desplazamientos humanos
-      chord.forEach((noteFreq, i) => {
+      chord.forEach((freq, idx) => {
         setTimeout(() => {
-          this.playVoice(noteFreq, 6.5);
-        }, i * 140);
+          if (!this.isPlaying || !this.ctx || this.isMuted) return;
+          const now = this.ctx.currentTime;
+          const osc1 = this.ctx.createOscillator();
+          const osc2 = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(freq, now);
+
+          osc2.type = 'triangle';
+          osc2.frequency.setValueAtTime(freq * 1.003, now); // Leve coro analogico
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.09, now + 2.0);
+          gain.gain.linearRampToValueAtTime(0.001, now + 6.2);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(this.filter);
+
+          osc1.start(now);
+          osc2.start(now);
+          osc1.stop(now + 6.5);
+          osc2.stop(now + 6.5);
+        }, idx * 120);
       });
 
-      // Transición al siguiente acorde cada 5.2 segundos
-      this.timer = setTimeout(() => {
-        this.playNextChord();
-      }, 5200);
+      this.loopTimer = setTimeout(() => {
+        this.playChord();
+      }, 5400);
     }
 
-    scheduleCelestialChimes() {
+    scheduleBells() {
       if (!this.isPlaying) return;
-
-      const randomInterval = 2500 + Math.random() * 3500;
+      const delayTime = 3000 + Math.random() * 4000;
       this.chimeTimer = setTimeout(() => {
         if (this.ctx && !this.isMuted && this.isPlaying) {
-          const note = this.celestialNotes[Math.floor(Math.random() * this.celestialNotes.length)];
+          const note = this.bells[Math.floor(Math.random() * this.bells.length)];
           const now = this.ctx.currentTime;
-          const chimeOsc = this.ctx.createOscillator();
-          const chimeGain = this.ctx.createGain();
+          const bellOsc = this.ctx.createOscillator();
+          const bellGain = this.ctx.createGain();
 
-          chimeOsc.type = 'sine';
-          chimeOsc.frequency.setValueAtTime(note, now);
+          bellOsc.type = 'sine';
+          bellOsc.frequency.setValueAtTime(note, now);
 
-          chimeGain.gain.setValueAtTime(0.0001, now);
-          chimeGain.gain.exponentialRampToValueAtTime(0.05, now + 0.08);
-          chimeGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.0);
+          bellGain.gain.setValueAtTime(0.001, now);
+          bellGain.gain.linearRampToValueAtTime(0.035, now + 0.1);
+          bellGain.gain.linearRampToValueAtTime(0.001, now + 3.0);
 
-          chimeOsc.connect(chimeGain);
-          chimeGain.connect(this.filter);
+          bellOsc.connect(bellGain);
+          bellGain.connect(this.filter);
 
-          chimeOsc.start(now);
-          chimeOsc.stop(now + 3.2);
+          bellOsc.start(now);
+          bellOsc.stop(now + 3.2);
         }
-        this.scheduleCelestialChimes();
-      }, randomInterval);
+        this.scheduleBells();
+      }, delayTime);
     }
 
     toggleMute() {
       if (!this.ctx) return false;
       this.isMuted = !this.isMuted;
-      const targetGain = this.isMuted ? 0.0001 : 0.28;
-      this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
-      this.masterGain.gain.linearRampToValueAtTime(targetGain, this.ctx.currentTime + 0.4);
+      const t = this.ctx.currentTime;
+      this.master.gain.cancelScheduledValues(t);
+      this.master.gain.linearRampToValueAtTime(this.isMuted ? 0.001 : 0.24, t + 0.3);
+      if (!this.isMuted) {
+        this.playChord();
+      }
       return !this.isMuted;
     }
   }
 
-  const soundtrack = new AmbientSoundtrack();
+  const audioEngine = new AtmosphericAudio();
 
   // ========================================================
-  // 2. CANVAS DE PARTÍCULAS INTERACTIVAS
-  // Destellos suaves en movimiento constante
+  // 8. INTERACCIONES Y EVENTOS DE INTERFAZ
   // ========================================================
-  let width, height;
-  const particles = [];
-  const PARTICLE_COUNT = 45;
+  function startExperience() {
+    // 1. Audio
+    audioEngine.start();
 
-  function resizeCanvas() {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width * window.devicePixelRatio;
-    canvas.height = height * window.devicePixelRatio;
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  }
+    // 2. Transicion de pantalla
+    introScreen.classList.add('screen-hidden');
 
-  class Particle {
-    constructor() {
-      this.reset(true);
-    }
+    // 3. Iniciar revelacion cinemática en Canvas
+    triggerReveal();
 
-    reset(initial = false) {
-      this.x = Math.random() * width;
-      this.y = initial ? Math.random() * height : height + 10;
-      this.radius = 1 + Math.random() * 2.2;
-      this.speedY = -(0.25 + Math.random() * 0.65);
-      this.speedX = (Math.random() - 0.5) * 0.4;
-      this.baseAlpha = 0.2 + Math.random() * 0.65;
-      this.alpha = this.baseAlpha;
-      this.pulseSpeed = 0.015 + Math.random() * 0.03;
-      this.color = Math.random() > 0.4 ? '#ff529c' : '#c752ff';
-    }
+    // 4. Mostrar controles con delay refinado
+    setTimeout(() => {
+      controlDock.classList.remove('dock-hidden');
+      gestureHint.classList.remove('hint-hidden');
 
-    update() {
-      this.y += this.speedY;
-      this.x += this.speedX;
-      this.alpha = this.baseAlpha + Math.sin(Date.now() * this.pulseSpeed * 0.05) * 0.2;
-
-      if (this.y < -10 || this.x < -10 || this.x > width + 10) {
-        this.reset(false);
-      }
-    }
-
-    draw() {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.globalAlpha = Math.max(0, Math.min(1, this.alpha));
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = this.color;
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  function initParticles() {
-    resizeCanvas();
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      particles.push(new Particle());
-    }
-  }
-
-  function renderParticles() {
-    ctx.clearRect(0, 0, width, height);
-    for (let i = 0; i < particles.length; i++) {
-      particles[i].update();
-      particles[i].draw();
-    }
-    requestAnimationFrame(renderParticles);
-  }
-
-  window.addEventListener('resize', resizeCanvas);
-  initParticles();
-  renderParticles();
-
-  // ========================================================
-  // 3. MOTOR DE GESTOS TÁCTILES & AUTO-ESCALADO RESPONSIVO
-  // Pinch-to-zoom, arrastrar (pan), doble toque para centrar
-  // ========================================================
-  let baseScale = 1;
-  let userScale = 1;
-  let panX = 0;
-  let panY = 0;
-
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
-  let startPanX = 0;
-  let startPanY = 0;
-
-  let initialPinchDistance = 0;
-  let startUserScale = 1;
-  let lastTapTime = 0;
-
-  function calculateBaseScale() {
-    // Calculamos el tamaño relativo para que quepa en el 92% de la pantalla
-    const rect = asciiArt.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-
-    // Medidas base del contenedor pre sin escala
-    const contentW = asciiArt.scrollWidth;
-    const contentH = asciiArt.scrollHeight;
-
-    const availableW = window.innerWidth * 0.94;
-    const availableH = window.innerHeight * 0.88;
-
-    const scaleX = availableW / contentW;
-    const scaleY = availableH / contentH;
-
-    // Escala ideal para que se aprecie completo sin recortarse
-    baseScale = Math.min(scaleX, scaleY);
-    updateTransform();
-  }
-
-  function updateTransform(smooth = false) {
-    if (smooth) {
-      artContainer.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
       setTimeout(() => {
-        artContainer.style.transition = 'none';
-      }, 400);
-    }
-    const currentTotalScale = baseScale * userScale;
-    artContainer.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${currentTotalScale})`;
+        gestureHint.classList.add('hint-hidden');
+      }, 4200);
+    }, 1500);
   }
 
-  function resetView(smooth = true) {
-    userScale = 1;
-    panX = 0;
-    panY = 0;
-    updateTransform(smooth);
-  }
-
-  // Medir distancia entre 2 dedos
-  function getPinchDistance(e) {
-    const t1 = e.touches[0];
-    const t2 = e.touches[1];
-    return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-  }
-
-  // Eventos táctiles (Touch Events)
-  viewport.addEventListener('touchstart', function (e) {
-    if (e.touches.length === 1) {
-      // Detección de doble toque para resetear
-      const currentTime = Date.now();
-      if (currentTime - lastTapTime < 300) {
-        resetView(true);
-        lastTapTime = 0;
-        return;
-      }
-      lastTapTime = currentTime;
-
-      // Iniciar Pan
-      isDragging = true;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      startPanX = panX;
-      startPanY = panY;
-    } else if (e.touches.length === 2) {
-      // Iniciar Pinch-to-zoom
-      isDragging = false;
-      initialPinchDistance = getPinchDistance(e);
-      startUserScale = userScale;
-    }
-  }, { passive: true });
-
-  viewport.addEventListener('touchmove', function (e) {
-    if (e.touches.length === 1 && isDragging) {
-      const deltaX = e.touches[0].clientX - startX;
-      const deltaY = e.touches[0].clientY - startY;
-      panX = startPanX + deltaX;
-      panY = startPanY + deltaY;
-      updateTransform(false);
-    } else if (e.touches.length === 2 && initialPinchDistance > 0) {
-      const currentDist = getPinchDistance(e);
-      const ratio = currentDist / initialPinchDistance;
-      // Límites de zoom entre 0.8x y 4.5x
-      userScale = Math.min(Math.max(startUserScale * ratio, 0.8), 4.5);
-      updateTransform(false);
-    }
-  }, { passive: true });
-
-  viewport.addEventListener('touchend', function (e) {
-    if (e.touches.length === 0) {
-      isDragging = false;
-      initialPinchDistance = 0;
-    } else if (e.touches.length === 1) {
-      isDragging = true;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      startPanX = panX;
-      startPanY = panY;
-      initialPinchDistance = 0;
+  openTrigger.addEventListener('click', startExperience);
+  openTrigger.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      startExperience();
     }
   });
 
-  // Soporte para mouse en PC / Laptop
-  viewport.addEventListener('mousedown', function (e) {
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startPanX = panX;
-    startPanY = panY;
-  });
-
-  window.addEventListener('mousemove', function (e) {
-    if (!isDragging) return;
-    const deltaX = e.clientX - startX;
-    const deltaY = e.clientY - startY;
-    panX = startPanX + deltaX;
-    panY = startPanY + deltaY;
-    updateTransform(false);
-  });
-
-  window.addEventListener('mouseup', function () {
-    isDragging = false;
-  });
-
-  // Zoom con rueda de ratón (Mouse wheel)
-  viewport.addEventListener('wheel', function (e) {
-    e.preventDefault();
-    const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
-    userScale = Math.min(Math.max(userScale * zoomFactor, 0.8), 4.5);
-    updateTransform(false);
-  }, { passive: false });
-
-  // Botón para resetear vista
-  resetBtn.addEventListener('click', function (e) {
+  // Selector de Temas
+  themeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    resetView(true);
+    currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
+    renderOffscreenArt(THEMES[currentThemeIndex]);
   });
 
-  // Botón de control de sonido
-  audioBtn.addEventListener('click', function (e) {
+  // Boton de Centrado
+  resetBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const isNowPlaying = soundtrack.toggleMute();
+    camera.targetScale = camera.fitScale;
+    camera.targetX = viewportWidth / 2;
+    camera.targetY = viewportHeight / 2;
+  });
+
+  // Boton de Audio
+  audioBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isNowPlaying = audioEngine.toggleMute();
     if (isNowPlaying) {
-      iconSoundOn.classList.remove('hidden');
-      iconSoundOff.classList.add('hidden');
+      iconAudioOn.classList.remove('hidden');
+      iconAudioOff.classList.add('hidden');
     } else {
-      iconSoundOn.classList.add('hidden');
-      iconSoundOff.classList.remove('hidden');
+      iconAudioOn.classList.add('hidden');
+      iconAudioOff.classList.remove('hidden');
     }
   });
 
-  // Reajuste en cambios de tamaño o giro de pantalla móvil
+  // Redimensionado de pantalla y rotacion
   window.addEventListener('resize', () => {
-    calculateBaseScale();
+    resizeStage();
+    updateFitScale();
   });
   window.addEventListener('orientationchange', () => {
-    setTimeout(calculateBaseScale, 300);
-  });
-
-  // ========================================================
-  // 4. SECUENCIA DE APERTURA (TOCA PARA ABRIR)
-  // ========================================================
-  function openExperience() {
-    // 1. Iniciar audio procedural
-    soundtrack.start();
-
-    // 2. Transición suave de salida para la pantalla de bienvenida
-    introScreen.classList.add('fade-out');
-
-    // 3. Mostrar viewport y encender tubo de neón
-    viewport.classList.remove('viewport-hidden');
-    calculateBaseScale();
-
-    // Aplicar parpadeo realista de encendido de neón
-    asciiArt.classList.add('neon-flicker');
-
-    // 4. Mostrar controles y toast guía
     setTimeout(() => {
-      controls.classList.remove('controls-hidden');
-      hintToast.classList.remove('toast-hidden');
-
-      // Ocultar sugerencia suavemente tras 4.5 segundos
-      setTimeout(() => {
-        hintToast.classList.add('toast-hidden');
-      }, 4500);
-    }, 1200);
-  }
-
-  // Disparar apertura al hacer click o tap en la tarjeta
-  openBtn.addEventListener('click', openExperience);
-  openBtn.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' || e.key === ' ') {
-      openExperience();
-    }
+      resizeStage();
+      updateFitScale();
+    }, 250);
   });
 
-  // Pre-cálculo inicial de escala
-  setTimeout(calculateBaseScale, 100);
+  // Inicializacion
+  resizeStage();
+  renderOffscreenArt(THEMES[currentThemeIndex]);
+  updateFitScale();
+  requestAnimationFrame(loop);
 })();

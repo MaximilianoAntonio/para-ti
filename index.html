@@ -4,66 +4,72 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no, viewport-fit=cover">
   <title>Para ti</title>
-  <meta name="theme-color" content="#08020e">
+  <meta name="theme-color" content="#05020a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Canvas de partículas de fondo -->
-  <canvas id="particles-canvas"></canvas>
+  <!-- Canvas principal interactivo de alto rendimiento -->
+  <canvas id="main-stage"></canvas>
 
-  <!-- Pantalla de Bienvenida / Toca para abrir -->
+  <!-- Pantalla de Bienvenida / Apertura Inmersiva -->
   <div id="intro-screen">
-    <div class="intro-card" id="open-btn" role="button" tabindex="0" aria-label="Toca para abrir">
-      <div class="heart-pulse-wrapper">
-        <div class="heart-glow"></div>
-        <svg class="heart-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-        </svg>
+    <div class="intro-content" id="open-trigger" role="button" tabindex="0" aria-label="Toca para abrir">
+      <div class="orb-container">
+        <div class="orb-ring ring-1"></div>
+        <div class="orb-ring ring-2"></div>
+        <div class="orb-core">
+          <svg class="heart-svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
       </div>
-      <p class="intro-title">Para alguien especial</p>
-      <span class="intro-subtitle">Toca para abrir</span>
+      <div class="intro-text-group">
+        <span class="intro-eyebrow">UNA DEDICATORIA EN LUZ</span>
+        <h1 class="intro-heading">Para alguien especial</h1>
+        <div class="intro-action-badge">
+          <span class="pulse-dot"></span>
+          <span class="badge-label">Toca para abrir</span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Contenedor principal del Arte ASCII (Pinch & Pan) -->
-  <main id="viewport" class="viewport-hidden">
-    <div id="art-container">
-      <pre id="ascii-art"></pre>
-    </div>
-  </main>
-
-  <!-- Controles flotantes discretos -->
-  <aside id="controls" class="controls-hidden" aria-label="Controles">
-    <button id="reset-btn" class="ctrl-btn" title="Reiniciar vista" aria-label="Reiniciar vista">
+  <!-- Barra de controles flotante con estilo Glassmorphism -->
+  <nav id="control-dock" class="dock-hidden" aria-label="Controles">
+    <button id="theme-btn" class="dock-btn" title="Cambiar atmosfera de color" aria-label="Cambiar estilo de color">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-        <path d="M3 3v5h5"/>
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 3a9 9 0 0 1 9 9 9 9 0 0 1-9 9V3z"/>
       </svg>
     </button>
-    <button id="audio-btn" class="ctrl-btn" title="Silenciar / Activar sonido" aria-label="Silenciar o activar sonido">
-      <svg id="icon-sound-on" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-      </svg>
-      <svg id="icon-sound-off" class="hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-        <line x1="23" y1="9" x2="17" y2="15"></line>
-        <line x1="17" y1="9" x2="23" y2="15"></line>
+    <button id="reset-btn" class="dock-btn" title="Centrar y ajustar pantalla" aria-label="Restablecer vista centrada">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
       </svg>
     </button>
-  </aside>
+    <button id="audio-btn" class="dock-btn" title="Silenciar o reproducir musica" aria-label="Activar o desactivar sonido">
+      <svg id="icon-audio-on" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      </svg>
+      <svg id="icon-audio-off" class="hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <line x1="23" y1="9" x2="17" y2="15"/>
+        <line x1="17" y1="9" x2="23" y2="15"/>
+      </svg>
+    </button>
+  </nav>
 
-  <!-- Sugerencia flotante que se desvanece suavemente -->
-  <div id="hint-toast" class="toast-hidden">
-    <span>Pellizca para zoom - Arrastra para mover</span>
+  <!-- Notificacion de guia sutil -->
+  <div id="gesture-hint" class="hint-hidden">
+    <span>Arrastra para mover - Pellizca para zoom</span>
   </div>
 
-  <!-- Scripts -->
   <script src="art.js"></script>
   <script src="script.js"></script>
 </body>
