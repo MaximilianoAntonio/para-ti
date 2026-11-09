@@ -47,7 +47,7 @@ html, body {
 }
 
 /* ========================================================
-   PANTALLA DE APERTURA (DISENO EDITORIAL ELEGANTE)
+   PANTALLA DE APERTURA MINIMALISTA
    ======================================================== */
 #intro-screen {
   position: fixed;
@@ -59,10 +59,11 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 50% 50%, rgba(18, 5, 29, 0.96) 0%, rgba(4, 1, 8, 0.99) 100%);
+  background: rgba(4, 1, 8, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 1.4s;
+  cursor: pointer;
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 1.2s;
 }
 
 #intro-screen.screen-hidden {
@@ -71,148 +72,59 @@ html, body {
   pointer-events: none;
 }
 
-.intro-content {
+.minimal-prompt {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  cursor: pointer;
-  padding: 40px 30px;
-  max-width: 420px;
-  width: 90%;
-  border-radius: 32px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 0 30px rgba(255, 42, 133, 0.05);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+  pointer-events: none;
+  animation: minimal-float 3.5s ease-in-out infinite alternate;
 }
 
-.intro-content:active {
-  transform: scale(0.97);
-}
-
-/* Orbe Pulsante Central */
-.orb-container {
-  position: relative;
-  width: 110px;
-  height: 110px;
+.minimal-glyph {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 28px;
-}
-
-.orb-ring {
-  position: absolute;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  border: 1px dashed rgba(255, 42, 133, 0.35);
-}
-
-.ring-1 {
-  width: 100%;
-  height: 100%;
-  animation: rotate-clockwise 14s linear infinite;
-}
-
-.ring-2 {
-  width: 78%;
-  height: 78%;
-  border: 1px solid rgba(184, 69, 237, 0.3);
-  animation: rotate-counter 9s linear infinite;
-}
-
-.orb-core {
-  position: relative;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 42, 133, 0.85) 0%, rgba(184, 69, 237, 0.4) 60%, transparent 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 35px rgba(255, 42, 133, 0.6), 0 0 70px rgba(184, 69, 237, 0.3);
-  animation: pulse-core 2.4s ease-in-out infinite alternate;
+  background: radial-gradient(circle, rgba(255, 0, 85, 0.25) 0%, transparent 70%);
 }
 
 .tulip-svg {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   color: #ffffff;
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 14px rgba(255, 0, 85, 0.6));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 18px rgba(255, 0, 85, 0.7));
 }
 
-@keyframes rotate-clockwise {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes rotate-counter {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
-}
-
-@keyframes pulse-core {
-  0% { transform: scale(0.92); box-shadow: 0 0 25px rgba(255, 42, 133, 0.5); }
-  100% { transform: scale(1.08); box-shadow: 0 0 50px rgba(255, 42, 133, 0.9), 0 0 80px rgba(184, 69, 237, 0.5); }
-}
-
-/* Tipografía de Entrada */
-.intro-text-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.intro-eyebrow {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.28em;
+.minimal-text {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 300;
+  letter-spacing: 0.35em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 18px;
+  transition: color 0.3s ease;
 }
 
-.intro-heading {
-  font-family: var(--font-serif);
-  font-size: 1.6rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  color: #fff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 0 40px rgba(255, 42, 133, 0.4);
-  margin-bottom: 24px;
+.minimal-line {
+  width: 28px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  margin-top: 14px;
+  animation: line-pulse 2.8s ease-in-out infinite alternate;
 }
 
-.intro-action-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 22px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 42, 133, 0.35);
-  box-shadow: 0 0 20px rgba(255, 42, 133, 0.2);
+@keyframes minimal-float {
+  0% { transform: translateY(0); opacity: 0.85; }
+  100% { transform: translateY(-6px); opacity: 1; }
 }
 
-.pulse-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: var(--color-primary-pink);
-  box-shadow: 0 0 10px var(--color-primary-pink);
-  animation: pulse-dot-anim 1.6s ease-in-out infinite;
-}
-
-@keyframes pulse-dot-anim {
-  0%, 100% { opacity: 0.4; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.3); }
-}
-
-.badge-label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
+@keyframes line-pulse {
+  0% { width: 16px; opacity: 0.2; }
+  100% { width: 36px; opacity: 0.6; }
 }
 
 /* ========================================================

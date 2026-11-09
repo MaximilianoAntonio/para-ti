@@ -12,7 +12,6 @@
   const mainStage = document.getElementById('main-stage');
   const ctx = mainStage.getContext('2d');
   const introScreen = document.getElementById('intro-screen');
-  const openTrigger = document.getElementById('open-trigger');
   const controlDock = document.getElementById('control-dock');
   const themeBtn = document.getElementById('theme-btn');
   const resetBtn = document.getElementById('reset-btn');
@@ -720,8 +719,8 @@
     }, 1500);
   }
 
-  openTrigger.addEventListener('click', startExperience);
-  openTrigger.addEventListener('keydown', (e) => {
+  introScreen.addEventListener('click', startExperience);
+  introScreen.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       startExperience();
     }
